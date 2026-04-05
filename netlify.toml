@@ -1,0 +1,23 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "24.14.1"
+  NPM_VERSION = "11.11.0"
+
+# Production branch
+[context.production]
+  command = "npm run build"
+  publish = "dist"
+
+# Deploy preview for pull requests
+[context.deploy-preview]
+  command = "npm run build"
+  publish = "dist"
+
+# Branch deploys
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
