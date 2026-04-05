@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import ReactToPrint from "react-to-print";
+import { useReactToPrint } from "react-to-print";
 import { ArrowDown } from "react-feather";
 
 import Editor from "../Editor/Editor";
@@ -19,6 +19,9 @@ function Body() {
     other: "Other",
   };
   const resumeRef = useRef();
+  const handlePrint = useReactToPrint({
+    content: () => resumeRef.current,
+  });
 
   const [activeColor, setActiveColor] = useState(colors[0]);
   const [resumeInformation, setResumeInformation] = useState({
@@ -75,16 +78,9 @@ function Body() {
             />
           ))}
         </div>
-        <ReactToPrint
-          trigger={() => {
-            return (
-              <button>
-                Download <ArrowDown />
-              </button>
-            );
-          }}
-          content={() => resumeRef.current}
-        />
+        <button onClick={handlePrint}>
+          Download <ArrowDown />
+        </button>
       </div>
       <div className={styles.main}>
         <Editor
