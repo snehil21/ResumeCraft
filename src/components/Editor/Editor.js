@@ -2,6 +2,13 @@ import React, { useEffect, useState } from "react";
 import { X } from "react-feather";
 
 import InputControl from "../InputControl/InputControl";
+import BasicInfo from "./BasicInfo";
+import WorkExp from "./WorkExp";
+import Project from "./Project";
+import Education from "./Education";
+import Achievements from "./Achievements";
+import Summary from "./Summary";
+import Other from "./Other";
 
 import styles from "./Editor.module.css";
 
@@ -35,317 +42,36 @@ function Editor(props) {
     setValues(tempValues);
   };
 
-  const workExpBody = (
-    <div className={styles.detail}>
-      <div className={styles.row}>
-        <InputControl
-          label="Job Title"
-          placeholder="Enter Job title eg. Frontend developer"
-          value={values.title}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, title: event.target.value }))
-          }
-        />
-        <InputControl
-          label="Company Name"
-          placeholder="Enter company name eg. Microsoft"
-          value={values.companyName}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, companyName: event.target.value }))
-          }
-        />
-      </div>
-      <div className={styles.row}>
-        {/* <InputControl
-          label="Certificate Link"
-          placeholder="Enter certificate link"
-          value={values.certificationLink}
-          onChange={(event) =>
-            setValues((prev) => ({
-              ...prev,
-              certificationLink: event.target.value,
-            }))
-          }
-        /> */}
-        <InputControl
-          label="Location"
-          placeholder="Enter location eg. Remote"
-          value={values.location}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, location: event.target.value }))
-          }
-        />
-      </div>
-      <div className={styles.row}>
-        <InputControl
-          label="Start Date"
-          type="date"
-          value={values.startDate}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, startDate: event.target.value }))
-          }
-        />
-        <InputControl
-          label="End Date"
-          type="date"
-          value={values.endDate}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, endDate: event.target.value }))
-          }
-        />
-      </div>
-
-      <div className={styles.column}>
-        <label>Enter work description</label>
-        <InputControl
-          placeholder="Line 1"
-          value={values.points ? values.points[0] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 0)}
-        />
-        <InputControl
-          placeholder="Line 2"
-          value={values.points ? values.points[1] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 1)}
-        />
-        <InputControl
-          placeholder="Line 3"
-          value={values.points ? values.points[2] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 2)}
-        />
-      </div>
-    </div>
-  );
-  const projectBody = (
-    <div className={styles.detail}>
-      <div className={styles.row}>
-        <InputControl
-          label="Project Title"
-          value={values.title}
-          placeholder="Enter title eg. Chat app"
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, title: event.target.value }))
-          }
-        />
-      </div>
-      <InputControl
-        label="Overview"
-        value={values.overview}
-        placeholder="Enter basic overview of project"
-        onChange={(event) =>
-          setValues((prev) => ({ ...prev, overview: event.target.value }))
-        }
-      />
-      <div className={styles.row}>
-        <InputControl
-          label="Deployed Link"
-          value={values.link}
-          placeholder="Enter deployed link of project"
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, link: event.target.value }))
-          }
-        />
-        <InputControl
-          label="Github Link"
-          value={values.github}
-          placeholder="Enter github link of project"
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, github: event.target.value }))
-          }
-        />
-      </div>
-      <div className={styles.column}>
-        <label>Enter project description</label>
-        <InputControl
-          placeholder="Line 1"
-          value={values.points ? values.points[0] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 0)}
-        />
-        <InputControl
-          placeholder="Line 2"
-          value={values.points ? values.points[1] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 1)}
-        />
-        <InputControl
-          placeholder="Line 3"
-          value={values.points ? values.points[2] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 2)}
-        />
-        <InputControl
-          placeholder="Line 4"
-          value={values.points ? values.points[3] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 3)}
-        />
-      </div>
-    </div>
-  );
-  const educationBody = (
-    <div className={styles.detail}>
-      <div className={styles.row}>
-        <InputControl
-          label="Field of Study/Degree"
-          value={values.title}
-          placeholder="Enter title eg.B-Tech"
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, title: event.target.value }))
-          }
-        />
-      </div>
-      <InputControl
-        label="College/School Name"
-        value={values.college}
-        placeholder="Enter name of your college/school"
-        onChange={(event) =>
-          setValues((prev) => ({ ...prev, college: event.target.value }))
-        }
-      />
-      <div className={styles.row}>
-        <InputControl
-          label="Start Date"
-          type="date"
-          placeholder="Enter start date of this education"
-          value={values.startDate}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, startDate: event.target.value }))
-          }
-        />
-        <InputControl
-          label="End Date"
-          type="date"
-          placeholder="Enter end date of this education"
-          value={values.endDate}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, endDate: event.target.value }))
-          }
-        />
-      </div>
-    </div>
-  );
-  const basicInfoBody = (
-    <div className={styles.detail}>
-      <div className={styles.row}>
-        <InputControl
-          label="Name"
-          placeholder="Enter your full name eg. Jhon Doe"
-          value={values.name}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, name: event.target.value }))
-          }
-        />
-        <InputControl
-          label="Title"
-          value={values.title}
-          placeholder="Enter your title eg. Frontend developer"
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, title: event.target.value }))
-          }
-        />
-      </div>
-      <div className={styles.row}>
-        <InputControl
-          label="Linkedin Link"
-          value={values.linkedin}
-          placeholder="Enter your Linkedin profile link"
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, linkedin: event.target.value }))
-          }
-        />
-        <InputControl
-          label="Github Link"
-          value={values.github}
-          placeholder="Enter your Github profile link"
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, github: event.target.value }))
-          }
-        />
-      </div>
-      <div className={styles.row}>
-        <InputControl
-          label="Email"
-          value={values.email}
-          placeholder="Enter your email"
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, email: event.target.value }))
-          }
-        />
-        <InputControl
-          label="Enter phone"
-          value={values.phone}
-          placeholder="Enter your phone number"
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, phone: event.target.value }))
-          }
-        />
-      </div>
-    </div>
-  );
-  const achievementsBody = (
-    <div className={styles.detail}>
-      <div className={styles.column}>
-        <label>List your achievements</label>
-        <InputControl
-          placeholder="Line 1"
-          value={values.points ? values.points[0] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 0)}
-        />
-        <InputControl
-          placeholder="Line 2"
-          value={values.points ? values.points[1] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 1)}
-        />
-        <InputControl
-          placeholder="Line 3"
-          value={values.points ? values.points[2] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 2)}
-        />
-        <InputControl
-          placeholder="Line 4"
-          value={values.points ? values.points[3] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 3)}
-        />
-      </div>
-    </div>
-  );
-  const summaryBody = (
-    <div className={styles.detail}>
-      <InputControl
-        label="Summary"
-        value={values.summary}
-        placeholder="Enter your objective/summary"
-        onChange={(event) =>
-          setValues((prev) => ({ ...prev, summary: event.target.value }))
-        }
-      />
-    </div>
-  );
-  const otherBody = (
-    <div className={styles.detail}>
-      <InputControl
-        label="Other"
-        value={values.other}
-        placeholder="Enter something"
-        onChange={(event) =>
-          setValues((prev) => ({ ...prev, other: event.target.value }))
-        }
-      />
-    </div>
-  );
-
   const generateBody = () => {
     switch (sections[activeSectionKey]) {
       case sections.basicInfo:
-        return basicInfoBody;
+        return <BasicInfo values={values} setValues={setValues} />;
       case sections.workExp:
-        return workExpBody;
+        return (
+          <WorkExp
+            values={values}
+            setValues={setValues}
+            handlePointUpdate={handlePointUpdate}
+          />
+        );
       case sections.project:
-        return projectBody;
+        return (
+          <Project
+            values={values}
+            setValues={setValues}
+            handlePointUpdate={handlePointUpdate}
+          />
+        );
       case sections.education:
-        return educationBody;
+        return <Education values={values} setValues={setValues} />;
       case sections.achievement:
-        return achievementsBody;
+        return (
+          <Achievements values={values} handlePointUpdate={handlePointUpdate} />
+        );
       case sections.summary:
-        return summaryBody;
+        return <Summary values={values} setValues={setValues} />;
       case sections.other:
-        return otherBody;
+        return <Other values={values} setValues={setValues} />;
       default:
         return null;
     }
