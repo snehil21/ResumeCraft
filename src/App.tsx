@@ -1,15 +1,18 @@
 import React from "react";
-import Header from "./components/Header/Header";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Landing from "./components/Landing/Landing";
 import Body from "./components/Body/Body";
 
 import "./App.css";
 
 function App() {
   return (
-    <div className="App">
-      <Header />
-      <Body />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/resumebuilder" element={<Body />} />
+      </Routes>
+    </Router>
   );
 }
 
