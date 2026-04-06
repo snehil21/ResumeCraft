@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { FC, useState, useEffect } from "react";
 import { X } from "react-feather";
 
 import InputControl from "../InputControl/InputControl";
@@ -11,11 +11,19 @@ import Summary from "./Summary";
 import Other from "./Other";
 
 import styles from "./Editor.module.css";
+import { FormValues, ResumeInformation } from "../../types";
 
-function Editor(props) {
-  const sections = props.sections;
-  const information = props.information;
+interface EditorProps {
+  sections: { [key: string]: string };
+  information: ResumeInformation;
+  setInformation: React.Dispatch<React.SetStateAction<ResumeInformation>>;
+}
 
+const Editor: FC<EditorProps> = ({
+  sections,
+  information,
+  setInformation,
+}) => {
   const [activeSectionKey, setActiveSectionKey] = useState(
     Object.keys(sections)[0]
   );
@@ -26,16 +34,16 @@ function Editor(props) {
   const [sectionTitle, setSectionTitle] = useState(
     sections[Object.keys(sections)[0]]
   );
-  const [values, setValues] = useState({
-    name: activeInformation?.detail?.name || "",
-    title: activeInformation?.detail?.title || "",
-    linkedin: activeInformation?.detail?.linkedin || "",
-    github: activeInformation?.detail?.github || "",
-    phone: activeInformation?.detail?.phone || "",
-    email: activeInformation?.detail?.email || "",
+  const [values, setValues] = useState<FormValues>({
+    name: typeof activeInformation?.detail === "object" ? activeInformation?.detail?.name || "" : "",
+    title: typeof activeInformation?.detail === "object" ? activeInformation?.detail?.title || "" : "",
+    linkedin: typeof activeInformation?.detail === "object" ? activeInformation?.detail?.linkedin || "" : "",
+    github: typeof activeInformation?.detail === "object" ? activeInformation?.detail?.github || "" : "",
+    phone: typeof activeInformation?.detail === "object" ? activeInformation?.detail?.phone || "" : "",
+    email: typeof activeInformation?.detail === "object" ? activeInformation?.detail?.email || "" : "",
   });
 
-  const handlePointUpdate = (value, index) => {
+  const handlePointUpdate = (value: string, index: number) => {
     const tempValues = { ...values };
     if (!Array.isArray(tempValues.points)) tempValues.points = [];
     tempValues.points[index] = value;
@@ -89,7 +97,7 @@ function Editor(props) {
           phone: values.phone,
         };
 
-        props.setInformation((prev) => ({
+        setInformation((prev) => ({
           ...prev,
           [sections.basicInfo]: {
             ...prev[sections.basicInfo],
@@ -109,10 +117,10 @@ function Editor(props) {
           location: values.location,
           points: values.points,
         };
-        const tempDetails = [...information[sections.workExp]?.details];
+        const tempDetails = [...(information[sections.workExp]?.details || [])];
         tempDetails[activeDetailIndex] = tempDetail;
 
-        props.setInformation((prev) => ({
+        setInformation((prev) => ({
           ...prev,
           [sections.workExp]: {
             ...prev[sections.workExp],
@@ -130,10 +138,10 @@ function Editor(props) {
           github: values.github,
           points: values.points,
         };
-        const tempDetails = [...information[sections.project]?.details];
+        const tempDetails = [...(information[sections.project]?.details || [])];
         tempDetails[activeDetailIndex] = tempDetail;
 
-        props.setInformation((prev) => ({
+        setInformation((prev) => ({
           ...prev,
           [sections.project]: {
             ...prev[sections.project],
@@ -150,10 +158,10 @@ function Editor(props) {
           startDate: values.startDate,
           endDate: values.endDate,
         };
-        const tempDetails = [...information[sections.education]?.details];
+        const tempDetails = [...(information[sections.education]?.details || [])];
         tempDetails[activeDetailIndex] = tempDetail;
 
-        props.setInformation((prev) => ({
+        setInformation((prev) => ({
           ...prev,
           [sections.education]: {
             ...prev[sections.education],
@@ -166,7 +174,7 @@ function Editor(props) {
       case sections.achievement: {
         const tempPoints = values.points;
 
-        props.setInformation((prev) => ({
+        setInformation((prev) => ({
           ...prev,
           [sections.achievement]: {
             ...prev[sections.achievement],
@@ -179,7 +187,7 @@ function Editor(props) {
       case sections.summary: {
         const tempDetail = values.summary;
 
-        props.setInformation((prev) => ({
+        setInformation((prev) => ({
           ...prev,
           [sections.summary]: {
             ...prev[sections.summary],
@@ -192,7 +200,7 @@ function Editor(props) {
       case sections.other: {
         const tempDetail = values.other;
 
-        props.setInformation((prev) => ({
+        setInformation((prev) => ({
           ...prev,
           [sections.other]: {
             ...prev[sections.other],
@@ -209,10 +217,10 @@ function Editor(props) {
     const details = activeInformation?.details;
     if (!details) return;
     const lastDetail = details.slice(-1)[0];
-    if (!Object.keys(lastDetail).length) return;
+    if (!Object.keys(lastDetail || {}).length) return;
     details?.push({});
 
-    props.setInformation((prev) => ({
+    setInformation((prev) => ({
       ...prev,
       [sections[activeSectionKey]]: {
         ...information[sections[activeSectionKey]],
@@ -222,13 +230,13 @@ function Editor(props) {
     setActiveDetailIndex(details?.length - 1);
   };
 
-  const handleDeleteDetail = (index) => {
+  const handleDeleteDetail = (index: number) => {
     const details = activeInformation?.details
       ? [...activeInformation?.details]
-      : "";
+      : [];
     if (!details) return;
     details.splice(index, 1);
-    props.setInformation((prev) => ({
+    setInformation((prev) => ({
       ...prev,
       [sections[activeSectionKey]]: {
         ...information[sections[activeSectionKey]],
@@ -245,49 +253,51 @@ function Editor(props) {
     setSectionTitle(sections[activeSectionKey]);
     setActiveDetailIndex(0);
     setValues({
-      name: activeInfo?.detail?.name || "",
+      name: typeof activeInfo?.detail === "object" ? activeInfo?.detail?.name || "" : "",
       overview: activeInfo?.details
-        ? activeInfo.details[0]?.overview || ""
+        ? (activeInfo.details[0] as any)?.overview || ""
         : "",
-      link: activeInfo?.details ? activeInfo.details[0]?.link || "" : "",
+      link: activeInfo?.details
+        ? (activeInfo.details[0] as any)?.link || ""
+        : "",
       certificationLink: activeInfo?.details
-        ? activeInfo.details[0]?.certificationLink || ""
+        ? (activeInfo.details[0] as any)?.certificationLink || ""
         : "",
       companyName: activeInfo?.details
-        ? activeInfo.details[0]?.companyName || ""
+        ? (activeInfo.details[0] as any)?.companyName || ""
         : "",
-      college: activeInfo?.details ? activeInfo.details[0]?.college || "" : "",
+      college: activeInfo?.details
+        ? (activeInfo.details[0] as any)?.college || ""
+        : "",
       location: activeInfo?.details
-        ? activeInfo.details[0]?.location || ""
+        ? (activeInfo.details[0] as any)?.location || ""
         : "",
       startDate: activeInfo?.details
-        ? activeInfo.details[0]?.startDate || ""
+        ? (activeInfo.details[0] as any)?.startDate || ""
         : "",
-      endDate: activeInfo?.details ? activeInfo.details[0]?.endDate || "" : "",
+      endDate: activeInfo?.details
+        ? (activeInfo.details[0] as any)?.endDate || ""
+        : "",
       points: activeInfo?.details
-        ? activeInfo.details[0]?.points
-          ? [...activeInfo.details[0]?.points]
-          : ""
+        ? (activeInfo.details[0] as any)?.points
+          ? [...(activeInfo.details[0] as any)?.points]
+          : []
         : activeInfo?.points
-        ? [...activeInfo.points]
-        : "",
+        ? [...(activeInfo.points as any)]
+        : [],
       title: activeInfo?.details
-        ? activeInfo.details[0]?.title || ""
-        : activeInfo?.detail?.title || "",
-      linkedin: activeInfo?.detail?.linkedin || "",
+        ? (activeInfo.details[0] as any)?.title || ""
+        : (activeInfo?.detail as any)?.title || "",
+      linkedin: (activeInfo?.detail as any)?.linkedin || "",
       github: activeInfo?.details
-        ? activeInfo.details[0]?.github || ""
-        : activeInfo?.detail?.github || "",
-      phone: activeInfo?.detail?.phone || "",
-      email: activeInfo?.detail?.email || "",
+        ? (activeInfo.details[0] as any)?.github || ""
+        : (activeInfo?.detail as any)?.github || "",
+      phone: (activeInfo?.detail as any)?.phone || "",
+      email: (activeInfo?.detail as any)?.email || "",
       summary: typeof activeInfo?.detail !== "object" ? activeInfo.detail : "",
       other: typeof activeInfo?.detail !== "object" ? activeInfo.detail : "",
     });
-  }, [activeSectionKey]);
-
-  useEffect(() => {
-    setActiveInformation(information[sections[activeSectionKey]]);
-  }, [information]);
+  }, [activeSectionKey, information, sections]);
 
   useEffect(() => {
     const details = activeInformation?.details;
@@ -295,21 +305,29 @@ function Editor(props) {
 
     const activeInfo = information[sections[activeSectionKey]];
     setValues({
-      overview: activeInfo.details[activeDetailIndex]?.overview || "",
-      link: activeInfo.details[activeDetailIndex]?.link || "",
+      overview: (activeInfo.details as any)?.[activeDetailIndex]?.overview || "",
+      link: (activeInfo.details as any)?.[activeDetailIndex]?.link || "",
       certificationLink:
-        activeInfo.details[activeDetailIndex]?.certificationLink || "",
-      companyName: activeInfo.details[activeDetailIndex]?.companyName || "",
-      location: activeInfo.details[activeDetailIndex]?.location || "",
-      startDate: activeInfo.details[activeDetailIndex]?.startDate || "",
-      endDate: activeInfo.details[activeDetailIndex]?.endDate || "",
-      points: activeInfo.details[activeDetailIndex]?.points || "",
-      title: activeInfo.details[activeDetailIndex]?.title || "",
-      linkedin: activeInfo.details[activeDetailIndex]?.linkedin || "",
-      github: activeInfo.details[activeDetailIndex]?.github || "",
-      college: activeInfo.details[activeDetailIndex]?.college || "",
+        (activeInfo.details as any)?.[activeDetailIndex]?.certificationLink || "",
+      companyName:
+        (activeInfo.details as any)?.[activeDetailIndex]?.companyName || "",
+      location:
+        (activeInfo.details as any)?.[activeDetailIndex]?.location || "",
+      startDate:
+        (activeInfo.details as any)?.[activeDetailIndex]?.startDate || "",
+      endDate:
+        (activeInfo.details as any)?.[activeDetailIndex]?.endDate || "",
+      points:
+        (activeInfo.details as any)?.[activeDetailIndex]?.points || "",
+      title: (activeInfo.details as any)?.[activeDetailIndex]?.title || "",
+      linkedin:
+        (activeInfo.details as any)?.[activeDetailIndex]?.linkedin || "",
+      github:
+        (activeInfo.details as any)?.[activeDetailIndex]?.github || "",
+      college:
+        (activeInfo.details as any)?.[activeDetailIndex]?.college || "",
     });
-  }, [activeDetailIndex]);
+  }, [activeDetailIndex, information, activeSectionKey, sections]);
 
   return (
     <div className={styles.container}>
@@ -337,7 +355,7 @@ function Editor(props) {
 
         <div className={styles.chips}>
           {activeInformation?.details
-            ? activeInformation?.details?.map((item, index) => (
+            ? activeInformation?.details?.map((item: any, index: number) => (
                 <div
                   className={`${styles.chip} ${
                     activeDetailIndex === index ? styles.active : ""
@@ -373,6 +391,6 @@ function Editor(props) {
       </div>
     </div>
   );
-}
+};
 
 export default Editor;

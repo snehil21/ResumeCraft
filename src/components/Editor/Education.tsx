@@ -1,14 +1,20 @@
-import React from "react";
+import React, { FC } from "react";
 import InputControl from "../InputControl/InputControl";
 import styles from "./Editor.module.css";
+import { FormValues } from "../../types";
 
-function Education({ values, setValues }) {
+interface EducationProps {
+  values: FormValues;
+  setValues: React.Dispatch<React.SetStateAction<FormValues>>;
+}
+
+const Education: FC<EducationProps> = ({ values, setValues }) => {
   return (
     <div className={styles.detail}>
       <div className={styles.row}>
         <InputControl
           label="Field of Study/Degree"
-          value={values.title}
+          value={values.title || ""}
           placeholder="Enter title eg.B-Tech"
           onChange={(event) =>
             setValues((prev) => ({ ...prev, title: event.target.value }))
@@ -17,7 +23,7 @@ function Education({ values, setValues }) {
       </div>
       <InputControl
         label="College/School Name"
-        value={values.college}
+        value={values.college || ""}
         placeholder="Enter name of your college/school"
         onChange={(event) =>
           setValues((prev) => ({ ...prev, college: event.target.value }))
@@ -28,7 +34,7 @@ function Education({ values, setValues }) {
           label="Start Date"
           type="date"
           placeholder="Enter start date of this education"
-          value={values.startDate}
+          value={values.startDate || ""}
           onChange={(event) =>
             setValues((prev) => ({ ...prev, startDate: event.target.value }))
           }
@@ -37,7 +43,7 @@ function Education({ values, setValues }) {
           label="End Date"
           type="date"
           placeholder="Enter end date of this education"
-          value={values.endDate}
+          value={values.endDate || ""}
           onChange={(event) =>
             setValues((prev) => ({ ...prev, endDate: event.target.value }))
           }
@@ -45,6 +51,6 @@ function Education({ values, setValues }) {
       </div>
     </div>
   );
-}
+};
 
 export default Education;
