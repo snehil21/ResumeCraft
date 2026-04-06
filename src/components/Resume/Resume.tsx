@@ -20,6 +20,7 @@ import {
 
 import styles from "./Resume.module.css";
 import { ResumeInformation } from "../../types";
+import { SECTIONS } from "../../constants";
 
 interface ResumeProps {
   sections: { [key: string]: string };
@@ -40,13 +41,13 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
     const [target, setTarget] = useState("");
 
     const info = {
-      workExp: information[sections.workExp],
-      project: information[sections.project],
-      achievement: information[sections.achievement],
-      education: information[sections.education],
-      basicInfo: information[sections.basicInfo],
-      summary: information[sections.summary],
-      other: information[sections.other],
+      workExp: information[SECTIONS.workExp],
+      project: information[SECTIONS.project],
+      achievement: information[SECTIONS.achievement],
+      education: information[SECTIONS.education],
+      basicInfo: information[SECTIONS.basicInfo],
+      summary: information[SECTIONS.summary],
+      other: information[SECTIONS.other],
     };
 
     const getFormattedDate = (value: string): string => {
@@ -57,7 +58,7 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
     };
 
     const sectionDiv: ColumnInfo = {
-      [sections.workExp]: (
+      [SECTIONS.workExp]: (
         <div
           key={"workexp"}
           draggable
@@ -120,7 +121,7 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
           </div>
         </div>
       ),
-      [sections.project]: (
+      [SECTIONS.project]: (
         <div
           key={"project"}
           draggable
@@ -176,7 +177,7 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
           </div>
         </div>
       ),
-      [sections.education]: (
+      [SECTIONS.education]: (
         <div
           key={"education"}
           draggable
@@ -215,7 +216,7 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
           </div>
         </div>
       ),
-      [sections.achievement]: (
+      [SECTIONS.achievement]: (
         <div
           key={"achievement"}
           draggable
@@ -245,7 +246,7 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
           </div>
         </div>
       ),
-      [sections.summary]: (
+      [SECTIONS.summary]: (
         <div
           key={"summary"}
           draggable
@@ -261,7 +262,7 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
           </div>
         </div>
       ),
-      [sections.other]: (
+      [SECTIONS.other]: (
         <div
           key={"other"}
           draggable
@@ -308,8 +309,8 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
 
     useEffect(() => {
       setColumns([
-        [sections.project, sections.education, sections.summary],
-        [sections.workExp, sections.achievement, sections.other],
+        [SECTIONS.project, SECTIONS.education, SECTIONS.summary],
+        [SECTIONS.workExp, SECTIONS.achievement, SECTIONS.other],
       ]);
     }, []);
 
@@ -369,10 +370,26 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
 
           <div className={styles.main}>
             <div className={styles.col1}>
-              {columns[0].map((item) => sectionDiv[item])}
+              {columns[0].map((item) => {
+                if (item === SECTIONS.workExp) return sectionDiv[SECTIONS.workExp];
+                if (item === SECTIONS.project) return sectionDiv[SECTIONS.project];
+                if (item === SECTIONS.education) return sectionDiv[SECTIONS.education];
+                if (item === SECTIONS.achievement) return sectionDiv[SECTIONS.achievement];
+                if (item === SECTIONS.summary) return sectionDiv[SECTIONS.summary];
+                if (item === SECTIONS.other) return sectionDiv[SECTIONS.other];
+                return null;
+              })}
             </div>
             <div className={styles.col2}>
-              {columns[1].map((item) => sectionDiv[item])}
+              {columns[1].map((item) => {
+                if (item === SECTIONS.workExp) return sectionDiv[SECTIONS.workExp];
+                if (item === SECTIONS.project) return sectionDiv[SECTIONS.project];
+                if (item === SECTIONS.education) return sectionDiv[SECTIONS.education];
+                if (item === SECTIONS.achievement) return sectionDiv[SECTIONS.achievement];
+                if (item === SECTIONS.summary) return sectionDiv[SECTIONS.summary];
+                if (item === SECTIONS.other) return sectionDiv[SECTIONS.other];
+                return null;
+              })}
             </div>
           </div>
         </div>
