@@ -325,9 +325,19 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
       container.style.setProperty("--color", activeColor);
     }, [activeColor]);
 
+    // Check if resume has any user data
+    const hasUserData = (basicInfo: any) => {
+      return basicInfo?.detail?.name && basicInfo.detail.name !== "John Doe";
+    };
+
     return (
       <div ref={ref}>
         <div ref={containerRef} className={styles.container}>
+          {!hasUserData(info.basicInfo) && (
+            <div className={styles.placeholderMessage}>
+              📝 Update the details in above form to get your resume reday
+            </div>
+          )}
           <div className={styles.header}>
             <p className={styles.heading}>
               {(info.basicInfo?.detail as any)?.name}

@@ -26,6 +26,76 @@
   color: transparent;
 }
 
+.left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.scrollButton {
+  margin-top: 15px;
+  padding: 12px 24px;
+  background: linear-gradient(to right, #239ce2, #1369b9);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(35, 156, 226, 0.3);
+}
+
+.scrollButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(35, 156, 226, 0.4);
+}
+
+.scrollButton:active {
+  transform: translateY(0);
+}
+
+.scrollButton svg {
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}
+
 .right img {
   width: 400px;
 }
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    min-height: auto;
+    padding: 40px 20px;
+  }
+
+  .heading {
+    font-size: 2rem;
+    line-height: 2.8rem;
+  }
+
+  .right img {
+    width: 300px;
+  }
+
+  .scrollButton {
+    font-size: 0.95rem;
+    padding: 10px 20px;
+  }
+}
+

@@ -1,15 +1,16 @@
 .container {
-  min-width: 650px;
+  flex: 1;
+  max-width: 800px;
   min-height: 550px;
-  max-width: 750px;
+  max-height: calc(100vh - 200px);
   display: flex;
   flex-direction: column;
   gap: 30px;
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
   padding-top: 5px;
-  height: fit-content;
-  margin: 0 auto;
+  overflow-y: auto;
   cursor: pointer;
+  margin: 0 auto;
 }
 
 .header {

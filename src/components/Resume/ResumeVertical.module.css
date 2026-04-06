@@ -1,0 +1,271 @@
+.container {
+  --color: #239ce2;
+  flex: 1;
+  max-width: 850px;
+  min-height: 900px;
+  max-height: calc(100vh - 200px);
+  box-shadow: 1px 1px 3px 2px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 40px 35px;
+  position: relative;
+  background-color: #ffffff;
+  margin: 0 auto;
+  overflow-y: auto;
+}
+
+.placeholderMessage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.3rem;
+  color: #999;
+  text-align: center;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 2px solid var(--color);
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.header .heading {
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
+  margin: 0;
+  padding: 0;
+  letter-spacing: 1px;
+}
+
+.header .subHeading {
+  color: var(--color);
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 5px 0 0 0;
+  padding: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.header .links {
+  margin-top: 10px;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.header .link {
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.header .link:hover {
+  color: var(--color);
+}
+
+.header .link svg {
+  color: var(--color);
+  flex-shrink: 0;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.section.hidden {
+  display: none;
+}
+
+.section .sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 15px 0 8px 0;
+  padding: 0;
+  padding-bottom: 5px;
+  border-bottom: 2px solid var(--color);
+  color: #000;
+}
+
+.section .content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section .item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px dotted #ddd;
+}
+
+.section .item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.section .item .title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  padding: 0;
+  color: #000;
+}
+
+.section .item .company {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color);
+  margin: 0;
+  padding: 0;
+}
+
+.section .item .college {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color);
+  margin: 0;
+  padding: 0;
+}
+
+.section .item .location {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.section .item .date {
+  font-size: 0.85rem;
+  color: #666;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.section .link {
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--color);
+  transition: opacity 0.3s ease;
+}
+
+.section .link:hover {
+  opacity: 0.7;
+}
+
+.section .link svg {
+  color: var(--color);
+  flex-shrink: 0;
+}
+
+.section .points {
+  margin: 5px 0 0 0;
+  padding: 0 0 0 20px;
+  list-style: disc;
+}
+
+.section .points li {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.summaryText {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #333;
+  margin: 0;
+  padding: 5px 0;
+}
+
+.otherText {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #333;
+  margin: 0;
+  padding: 5px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 30px 20px;
+    min-height: auto;
+  }
+
+  .header .heading {
+    font-size: 1.8rem;
+  }
+
+  .header .subHeading {
+    font-size: 0.9rem;
+  }
+
+  .header .links {
+    gap: 10px;
+    font-size: 0.75rem;
+  }
+
+  .section .sectionTitle {
+    font-size: 1rem;
+    margin: 12px 0 6px 0;
+  }
+
+  .section .item .title {
+    font-size: 0.95rem;
+  }
+
+  .itemHeader {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .section .item .date {
+    font-size: 0.75rem;
+    white-space: normal;
+  }
+}
