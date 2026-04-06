@@ -1,8 +1,14 @@
-import React from "react";
+import React, { FC } from "react";
 import InputControl from "../InputControl/InputControl";
 import styles from "./Editor.module.css";
+import { FormValues } from "../../types";
 
-function Achievements({ values, handlePointUpdate }) {
+interface AchievementsProps {
+  values: FormValues;
+  handlePointUpdate: (value: string, index: number) => void;
+}
+
+const Achievements: FC<AchievementsProps> = ({ values, handlePointUpdate }) => {
   return (
     <div className={styles.detail}>
       <div className={styles.column}>
@@ -30,6 +36,6 @@ function Achievements({ values, handlePointUpdate }) {
       </div>
     </div>
   );
-}
+};
 
 export default Achievements;

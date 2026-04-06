@@ -1,10 +1,10 @@
-import React from "react";
+import React, { FC } from "react";
 
 import resumeSvg from "../../assets/standout.svg";
 
 import styles from "./Header.module.css";
 
-function Header() {
+const Header: FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.left}>
@@ -21,6 +21,6 @@ function Header() {
       </div>
     </div>
   );
-}
+};
 
 export default Header;

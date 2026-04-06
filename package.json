@@ -13,7 +13,12 @@
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
+    "@types/node": "^25.5.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.2.1",
+    "terser": "^5.46.1",
+    "typescript": "^6.0.2",
     "vite": "^5.0.8"
   },
   "scripts": {
