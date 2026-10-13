@@ -2,18 +2,14 @@ import React, { FC } from "react";
 import InputControl from "../InputControl/InputControl";
 import styles from "./Editor.module.css";
 import { FormValues } from "../../types";
+import BulletListEditor from "./BulletListEditor";
 
 interface WorkExpProps {
   values: FormValues;
   setValues: React.Dispatch<React.SetStateAction<FormValues>>;
-  handlePointUpdate: (value: string, index: number) => void;
 }
 
-const WorkExp: FC<WorkExpProps> = ({
-  values,
-  setValues,
-  handlePointUpdate,
-}) => {
+const WorkExp: FC<WorkExpProps> = ({ values, setValues }) => {
   return (
     <div className={styles.detail}>
       <div className={styles.row}>
@@ -56,31 +52,33 @@ const WorkExp: FC<WorkExpProps> = ({
         <InputControl
           label="End Date"
           type="date"
+          disabled={Boolean(values.currentRole)}
           value={values.endDate || ""}
           onChange={(event) =>
             setValues((prev) => ({ ...prev, endDate: event.target.value }))
           }
         />
       </div>
+      <label className={styles.currentRole}>
+        <input
+          type="checkbox"
+          checked={Boolean(values.currentRole)}
+          onChange={(event) =>
+            setValues((prev) => ({
+              ...prev,
+              currentRole: event.target.checked,
+              endDate: event.target.checked ? "" : prev.endDate,
+            }))
+          }
+        />
+        I currently work here
+      </label>
 
-      <div className={styles.column}>
-        <label>Enter work description</label>
-        <InputControl
-          placeholder="Line 1"
-          value={values.points ? values.points[0] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 0)}
-        />
-        <InputControl
-          placeholder="Line 2"
-          value={values.points ? values.points[1] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 1)}
-        />
-        <InputControl
-          placeholder="Line 3"
-          value={values.points ? values.points[2] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 2)}
-        />
-      </div>
+      <BulletListEditor
+        label="Work description"
+        points={values.points || []}
+        onChange={(points) => setValues((prev) => ({ ...prev, points }))}
+      />
     </div>
   );
 };

@@ -6,6 +6,8 @@ export interface BasicDetail {
   github?: string;
   email?: string;
   phone?: string;
+  location?: string;
+  website?: string;
 }
 
 // Work Experience Detail
@@ -18,6 +20,7 @@ export interface WorkExpDetail {
   companyName?: string;
   location?: string;
   points?: string[];
+  currentRole?: boolean;
 }
 
 // Project Detail
@@ -28,6 +31,8 @@ export interface ProjectDetail {
   overview?: string;
   github?: string;
   points?: string[];
+  startDate?: string;
+  endDate?: string;
 }
 
 // Education Detail
@@ -37,7 +42,30 @@ export interface EducationDetail {
   college?: string;
   startDate?: string;
   endDate?: string;
+  grade?: string;
+  location?: string;
 }
+
+export interface GenericDetail {
+  id: string;
+  title?: string;
+  subtitle?: string;
+  location?: string;
+  website?: string;
+  startDate?: string;
+  endDate?: string;
+  points?: string[];
+}
+
+export type SectionKind =
+  | "basicInfo"
+  | "workExp"
+  | "project"
+  | "education"
+  | "summary"
+  | "list"
+  | "text"
+  | "entries";
 
 // Achievement/Award Detail
 export interface AchievementDetail {
@@ -51,6 +79,11 @@ export type FormValues = BasicDetail &
   Omit<EducationDetail, "id"> & {
     summary?: string;
     other?: string;
+    location?: string;
+    website?: string;
+    grade?: string;
+    currentRole?: boolean;
+    subtitle?: string;
   };
 
 // Resume Section with discriminated unions for better type safety
@@ -68,8 +101,11 @@ export interface Section {
   id: string;
   sectionTitle: string;
   visible: boolean;
+  kind?: SectionKind;
+  custom?: boolean;
+  deleted?: boolean;
   detail?: BasicDetail | string;
-  details?: WorkExpDetail[] | ProjectDetail[] | EducationDetail[];
+  details?: WorkExpDetail[] | ProjectDetail[] | EducationDetail[] | GenericDetail[];
   points?: string[];
 }
 

@@ -88,17 +88,17 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
                 ) : (
                   <span />
                 )}
-                {item.startDate && item.endDate ? (
+                {item.startDate && (item.endDate || item.currentRole) ? (
                   <div className={styles.date}>
                     <Calendar /> {getFormattedDate(item.startDate)}-
-                    {getFormattedDate(item.endDate)}
+                    {item.currentRole ? "Present" : getFormattedDate(item.endDate)}
                   </div>
                 ) : (
                   <div />
                 )}
                 {item.location ? (
                   <p className={styles.date}>
-                    <MapPin /> Remote
+                    <MapPin /> {item.location}
                   </p>
                 ) : (
                   <span />
@@ -159,6 +159,9 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
                 ) : (
                   <span />
                 )}
+                {item.startDate && item.endDate ? (
+                  <div className={styles.date}><Calendar /> {getFormattedDate(item.startDate)} - {getFormattedDate(item.endDate)}</div>
+                ) : null}
                 {item.points?.length > 0 ? (
                   <ul className={styles.points}>
                     {item.points?.map((elem: string, index: number) => (
@@ -209,6 +212,8 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
                 ) : (
                   ""
                 )}
+                {item.grade ? <p className={styles.subTitle}>{item.grade}</p> : null}
+                {item.location ? <p className={styles.date}><MapPin /> {item.location}</p> : null}
               </div>
             ))}
           </div>
@@ -277,6 +282,31 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
         </div>
       ),
     };
+
+    const renderGenericSection = (sectionKey: string) => {
+      const section = information[sectionKey];
+      if (!section) return null;
+      return (
+        <div key={sectionKey} className={`${styles.section} ${section.visible && section.sectionTitle ? "" : styles.hidden}`}>
+          <div className={styles.sectionTitle}>{section.sectionTitle}</div>
+          <div className={styles.content}>
+            {typeof section.detail === "string" && section.detail ? <p className={styles.overview}>{section.detail}</p> : null}
+            {section.details?.map((item: any) => (
+              <div className={styles.item} key={item.id}>
+                {item.title ? <p className={styles.title}>{item.title}</p> : null}
+                {item.subtitle || item.companyName || item.college ? <p className={styles.subTitle}>{item.subtitle || item.companyName || item.college}</p> : null}
+                {item.startDate ? <p className={styles.date}><Calendar /> {getFormattedDate(item.startDate)}{item.endDate ? ` - ${getFormattedDate(item.endDate)}` : ""}</p> : null}
+                {item.location ? <p className={styles.date}><MapPin /> {item.location}</p> : null}
+                {item.points?.length ? <ul className={styles.points}>{item.points.map((point: string, index: number) => <li className={styles.point} key={`${point}-${index}`}>{point}</li>)}</ul> : null}
+              </div>
+            ))}
+            {section.points?.length ? <ul className={styles.points}>{section.points.map((point, index) => point ? <li className={styles.point} key={`${point}-${index}`}>{point}</li> : null)}</ul> : null}
+          </div>
+        </div>
+      );
+    };
+
+    const renderSection = (sectionKey: string) => sectionDiv[sectionKey] ?? renderGenericSection(sectionKey);
 
     const swapSourceTarget = (source: string, target: string) => {
       if (!source || !target) return;
@@ -377,31 +407,21 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
               ) : (
                 <span />
               )}
+              {(info.basicInfo?.detail as any)?.website ? (
+                <a className={styles.link} href={(info.basicInfo?.detail as any)?.website}><Paperclip /> {(info.basicInfo?.detail as any)?.website}</a>
+              ) : null}
+              {(info.basicInfo?.detail as any)?.location ? (
+                <span className={styles.link}><MapPin /> {(info.basicInfo?.detail as any)?.location}</span>
+              ) : null}
             </div>
           </div>
 
           <div className={styles.main}>
             <div className={styles.col1}>
-              {columns[0].map((item) => {
-                if (item === SECTIONS.workExp) return sectionDiv[SECTIONS.workExp];
-                if (item === SECTIONS.project) return sectionDiv[SECTIONS.project];
-                if (item === SECTIONS.education) return sectionDiv[SECTIONS.education];
-                if (item === SECTIONS.achievement) return sectionDiv[SECTIONS.achievement];
-                if (item === SECTIONS.summary) return sectionDiv[SECTIONS.summary];
-                if (item === SECTIONS.other) return sectionDiv[SECTIONS.other];
-                return null;
-              })}
+              {columns[0].map(renderSection)}
             </div>
             <div className={styles.col2}>
-              {columns[1].map((item) => {
-                if (item === SECTIONS.workExp) return sectionDiv[SECTIONS.workExp];
-                if (item === SECTIONS.project) return sectionDiv[SECTIONS.project];
-                if (item === SECTIONS.education) return sectionDiv[SECTIONS.education];
-                if (item === SECTIONS.achievement) return sectionDiv[SECTIONS.achievement];
-                if (item === SECTIONS.summary) return sectionDiv[SECTIONS.summary];
-                if (item === SECTIONS.other) return sectionDiv[SECTIONS.other];
-                return null;
-              })}
+              {columns[1].map(renderSection)}
             </div>
           </div>
         </div>

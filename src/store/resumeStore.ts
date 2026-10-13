@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { SECTIONS, SECTION_LABELS, SectionKey } from "../constants";
+import { SECTIONS, SECTION_LABELS } from "../constants";
 import {
   FormValues,
   ResumeColumns,
@@ -15,8 +15,8 @@ import {
 } from "../utils/resumeDocument";
 
 const DEFAULT_COLUMNS: ResumeColumns = [
-  [SECTIONS.project, SECTIONS.education, SECTIONS.summary],
-  [SECTIONS.workExp, SECTIONS.achievement, SECTIONS.other],
+  [SECTIONS.summary, SECTIONS.project, SECTIONS.education, SECTIONS.skills, SECTIONS.languages],
+  [SECTIONS.workExp, SECTIONS.achievement, SECTIONS.certifications, SECTIONS.volunteering, SECTIONS.publications, SECTIONS.courses, SECTIONS.other],
 ];
 
 const DEFAULT_SECTION_ORDER = [
@@ -26,6 +26,13 @@ const DEFAULT_SECTION_ORDER = [
   SECTIONS.project,
   SECTIONS.achievement,
   SECTIONS.other,
+  SECTIONS.skills,
+  SECTIONS.certifications,
+  SECTIONS.languages,
+  SECTIONS.awards,
+  SECTIONS.volunteering,
+  SECTIONS.publications,
+  SECTIONS.courses,
 ];
 
 const createId = (prefix: string): string => {
@@ -37,6 +44,24 @@ const createId = (prefix: string): string => {
 const withVisibility = (section: Omit<Section, "visible">): Section => ({
   ...section,
   visible: true,
+});
+
+const createListSection = (id: string, sectionTitle: string): Section => ({
+  id,
+  sectionTitle,
+  visible: false,
+  kind: "list",
+  points: [],
+});
+
+const createOptionalSections = (): ResumeInformation => ({
+  [SECTIONS.skills]: createListSection(SECTIONS.skills, SECTION_LABELS.skills),
+  [SECTIONS.certifications]: createListSection(SECTIONS.certifications, SECTION_LABELS.certifications),
+  [SECTIONS.languages]: createListSection(SECTIONS.languages, SECTION_LABELS.languages),
+  [SECTIONS.awards]: createListSection(SECTIONS.awards, SECTION_LABELS.awards),
+  [SECTIONS.volunteering]: createListSection(SECTIONS.volunteering, SECTION_LABELS.volunteering),
+  [SECTIONS.publications]: createListSection(SECTIONS.publications, SECTION_LABELS.publications),
+  [SECTIONS.courses]: createListSection(SECTIONS.courses, SECTION_LABELS.courses),
 });
 
 const createSampleResumeInformation = (): ResumeInformation => ({
@@ -182,6 +207,7 @@ const createSampleResumeInformation = (): ResumeInformation => ({
     detail:
       "Languages: C, C++, Java, JavaScript(TypeScript), SQL | Developer Tools: VS Code, Eclipse, NetBeans, Git, GitHub, MySQL, MongoDB, Zustand | Web Technologies/Frameworks: HTML, CSS, JavaScript, React Js, Next Js, Node Js, Nest Js | Cloud/Infra: AWS(Lambda, SQS, SNS, Cloudwatch, API Gateway), Terraform, Docker, Gitlab(CI/CD)",
   }),
+  ...createOptionalSections(),
 });
 
 const createBlankResumeInformation = (): ResumeInformation => ({
@@ -220,12 +246,65 @@ const createBlankResumeInformation = (): ResumeInformation => ({
     sectionTitle: SECTION_LABELS.other,
     detail: "",
   }),
+  ...createOptionalSections(),
 });
+
+const SECTION_KINDS: Record<string, Section["kind"]> = {
+  [SECTIONS.basicInfo]: "basicInfo",
+  [SECTIONS.workExp]: "workExp",
+  [SECTIONS.project]: "project",
+  [SECTIONS.education]: "education",
+  [SECTIONS.summary]: "summary",
+  [SECTIONS.achievement]: "list",
+  [SECTIONS.other]: "text",
+  [SECTIONS.skills]: "list",
+  [SECTIONS.certifications]: "list",
+  [SECTIONS.languages]: "list",
+  [SECTIONS.awards]: "list",
+  [SECTIONS.volunteering]: "list",
+  [SECTIONS.publications]: "list",
+  [SECTIONS.courses]: "list",
+};
+
+const normalizeResumeDocument = (document: ResumeDocument): ResumeDocument => {
+  const optionalSections = createOptionalSections();
+  const resumeInformation: ResumeInformation = { ...document.resumeInformation };
+
+  Object.entries(optionalSections).forEach(([key, section]) => {
+    if (!resumeInformation[key]) resumeInformation[key] = section;
+  });
+
+  Object.entries(resumeInformation).forEach(([key, section]) => {
+    resumeInformation[key] = { ...section, kind: section.kind ?? SECTION_KINDS[key] ?? "text" };
+  });
+
+  const existingOrder = document.layout.sectionOrder.filter(
+    (key) => resumeInformation[key] && !resumeInformation[key].deleted && key !== SECTIONS.basicInfo
+  );
+  const missingOrder = DEFAULT_SECTION_ORDER.filter(
+    (key) => resumeInformation[key] && !resumeInformation[key].deleted && !existingOrder.includes(key)
+  );
+  const sectionOrder = [...existingOrder, ...missingOrder];
+  const listedKeys = new Set(document.layout.columns.flat());
+  const columns: ResumeColumns = [
+    document.layout.columns[0].filter((key) => sectionOrder.includes(key)),
+    document.layout.columns[1].filter((key) => sectionOrder.includes(key)),
+  ];
+  sectionOrder.forEach((key, index) => {
+    if (!listedKeys.has(key)) columns[index % 2].push(key);
+  });
+
+  return {
+    ...document,
+    resumeInformation,
+    layout: { sectionOrder, columns },
+  };
+};
 
 const createResumeDocument = (kind: "blank" | "sample"): ResumeDocument => {
   const timestamp = new Date().toISOString();
 
-  return {
+  return normalizeResumeDocument({
     schemaVersion: 1,
     id: createId("resume"),
     title: kind === "blank" ? "Untitled resume" : "Sample resume",
@@ -251,7 +330,7 @@ const createResumeDocument = (kind: "blank" | "sample"): ResumeDocument => {
     },
     createdAt: timestamp,
     updatedAt: timestamp,
-  };
+  });
 };
 
 const touchDocument = (
@@ -272,7 +351,7 @@ interface ResumeStore {
   document: ResumeDocument;
   pastDocuments: ResumeDocument[];
   futureDocuments: ResumeDocument[];
-  activeSectionKey: SectionKey;
+  activeSectionKey: string;
   activeDetailIndex: number;
   currentFormValues: FormValues;
   updateResumeSection: (sectionKey: string, section: Partial<Section>) => void;
@@ -280,7 +359,7 @@ interface ResumeStore {
   setTemplate: (template: TemplateId) => void;
   setSectionColumns: (columns: ResumeColumns) => void;
   setSectionVisibility: (sectionKey: string, visible: boolean) => void;
-  setActiveSectionKey: (key: SectionKey) => void;
+  setActiveSectionKey: (key: string) => void;
   setActiveDetailIndex: (index: number) => void;
   setCurrentFormValues: (values: FormValues) => void;
   updateFormValues: (values: Partial<FormValues>) => void;
@@ -293,6 +372,18 @@ interface ResumeStore {
   ensureDocumentSaved: () => void;
   undo: () => void;
   redo: () => void;
+  moveSection: (sectionKey: string, direction: -1 | 1) => void;
+  duplicateSection: (sectionKey: string) => void;
+  deleteSection: (sectionKey: string) => void;
+  restoreSection: (sectionKey: string) => void;
+  addCustomSection: (kind: "text" | "list", title: string) => void;
+  moveDetail: (sectionKey: string, index: number, direction: -1 | 1) => void;
+  duplicateDetail: (sectionKey: string, index: number) => void;
+  addPoint: (sectionKey: string) => void;
+  updatePoint: (sectionKey: string, index: number, value: string) => void;
+  movePoint: (sectionKey: string, index: number, direction: -1 | 1) => void;
+  duplicatePoint: (sectionKey: string, index: number) => void;
+  deletePoint: (sectionKey: string, index: number) => void;
 }
 
 const HISTORY_LIMIT = 50;
@@ -305,6 +396,11 @@ const withDocumentHistory = (
   pastDocuments: [...state.pastDocuments, state.document].slice(-HISTORY_LIMIT),
   futureDocuments: [],
 });
+
+const columnsFromOrder = (sectionOrder: string[]): ResumeColumns => [
+  sectionOrder.filter((_, index) => index % 2 === 0),
+  sectionOrder.filter((_, index) => index % 2 === 1),
+];
 
 export const useResumeStore = create<ResumeStore>()(persist((set) => ({
   document: createResumeDocument("blank"),
@@ -400,10 +496,10 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
 
   importResumeDocument: (document) =>
     set((state) => ({
-      ...withDocumentHistory(state, {
+      ...withDocumentHistory(state, normalizeResumeDocument({
         ...document,
         updatedAt: new Date().toISOString(),
-      }),
+      })),
       activeSectionKey: SECTIONS.basicInfo,
       activeDetailIndex: 0,
       currentFormValues: {},
@@ -434,6 +530,229 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
         pastDocuments: [...state.pastDocuments, state.document].slice(-HISTORY_LIMIT),
         futureDocuments: state.futureDocuments.slice(1),
       };
+    }),
+
+  moveSection: (sectionKey, direction) =>
+    set((state) => {
+      const sectionOrder = [...state.document.layout.sectionOrder];
+      const currentIndex = sectionOrder.indexOf(sectionKey);
+      const targetIndex = currentIndex + direction;
+      if (currentIndex < 0 || targetIndex < 0 || targetIndex >= sectionOrder.length) return state;
+      [sectionOrder[currentIndex], sectionOrder[targetIndex]] = [
+        sectionOrder[targetIndex],
+        sectionOrder[currentIndex],
+      ];
+
+      return withDocumentHistory(state, touchDocument(state.document, {
+        layout: { sectionOrder, columns: columnsFromOrder(sectionOrder) },
+      }));
+    }),
+
+  duplicateSection: (sectionKey) =>
+    set((state) => {
+      const source = state.document.resumeInformation[sectionKey];
+      if (!source || sectionKey === SECTIONS.basicInfo) return state;
+      const duplicateKey = createId("section");
+      const duplicate: Section = {
+        ...source,
+        id: duplicateKey,
+        sectionTitle: `${source.sectionTitle} copy`,
+        custom: true,
+        deleted: false,
+        details: source.details?.map((detail) => ({ ...detail, id: createId("entry") })) as Section["details"],
+        points: "points" in source && source.points ? [...source.points] : undefined,
+      };
+      const sectionOrder = [...state.document.layout.sectionOrder];
+      const sourceIndex = sectionOrder.indexOf(sectionKey);
+      sectionOrder.splice(sourceIndex + 1, 0, duplicateKey);
+
+      return {
+        ...withDocumentHistory(state, touchDocument(state.document, {
+          resumeInformation: {
+            ...state.document.resumeInformation,
+            [duplicateKey]: duplicate,
+          },
+          layout: { sectionOrder, columns: columnsFromOrder(sectionOrder) },
+        })),
+        activeSectionKey: duplicateKey,
+        activeDetailIndex: 0,
+      };
+    }),
+
+  deleteSection: (sectionKey) =>
+    set((state) => {
+      if (sectionKey === SECTIONS.basicInfo) return state;
+      const section = state.document.resumeInformation[sectionKey];
+      if (!section) return state;
+      const sectionOrder = state.document.layout.sectionOrder.filter((key) => key !== sectionKey);
+
+      return {
+        ...withDocumentHistory(state, touchDocument(state.document, {
+          resumeInformation: {
+            ...state.document.resumeInformation,
+            [sectionKey]: { ...section, visible: false, deleted: true },
+          },
+          layout: { sectionOrder, columns: columnsFromOrder(sectionOrder) },
+        })),
+        activeSectionKey: SECTIONS.basicInfo,
+        activeDetailIndex: 0,
+      };
+    }),
+
+  restoreSection: (sectionKey) =>
+    set((state) => {
+      const section = state.document.resumeInformation[sectionKey];
+      if (!section) return state;
+      const sectionOrder = state.document.layout.sectionOrder.includes(sectionKey)
+        ? state.document.layout.sectionOrder
+        : [...state.document.layout.sectionOrder, sectionKey];
+
+      return {
+        ...withDocumentHistory(state, touchDocument(state.document, {
+          resumeInformation: {
+            ...state.document.resumeInformation,
+            [sectionKey]: { ...section, visible: true, deleted: false },
+          },
+          layout: { sectionOrder, columns: columnsFromOrder(sectionOrder) },
+        })),
+        activeSectionKey: sectionKey,
+        activeDetailIndex: 0,
+      };
+    }),
+
+  addCustomSection: (kind, title) =>
+    set((state) => {
+      const sectionKey = createId("custom");
+      const section: Section = {
+        id: sectionKey,
+        sectionTitle: title.trim() || (kind === "list" ? "Custom list" : "Custom section"),
+        visible: true,
+        kind,
+        custom: true,
+        ...(kind === "list" ? { points: [""] } : { detail: "" }),
+      };
+      const sectionOrder = [...state.document.layout.sectionOrder, sectionKey];
+
+      return {
+        ...withDocumentHistory(state, touchDocument(state.document, {
+          resumeInformation: { ...state.document.resumeInformation, [sectionKey]: section },
+          layout: { sectionOrder, columns: columnsFromOrder(sectionOrder) },
+        })),
+        activeSectionKey: sectionKey,
+        activeDetailIndex: 0,
+      };
+    }),
+
+  moveDetail: (sectionKey, index, direction) =>
+    set((state) => {
+      const section = state.document.resumeInformation[sectionKey];
+      if (!section?.details) return state;
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= section.details.length) return state;
+      const details = [...section.details] as NonNullable<Section["details"]>;
+      [details[index], details[targetIndex]] = [details[targetIndex], details[index]];
+
+      return {
+        ...withDocumentHistory(state, touchDocument(state.document, {
+          resumeInformation: {
+            ...state.document.resumeInformation,
+            [sectionKey]: { ...section, details },
+          },
+        })),
+        activeDetailIndex: targetIndex,
+      };
+    }),
+
+  duplicateDetail: (sectionKey, index) =>
+    set((state) => {
+      const section = state.document.resumeInformation[sectionKey];
+      const source = section?.details?.[index];
+      if (!section?.details || !source) return state;
+      const details = [...section.details] as NonNullable<Section["details"]>;
+      details.splice(index + 1, 0, {
+        ...source,
+        id: createId("entry"),
+        points: "points" in source && source.points ? [...source.points] : undefined,
+      } as any);
+
+      return {
+        ...withDocumentHistory(state, touchDocument(state.document, {
+          resumeInformation: {
+            ...state.document.resumeInformation,
+            [sectionKey]: { ...section, details },
+          },
+        })),
+        activeDetailIndex: index + 1,
+      };
+    }),
+
+  addPoint: (sectionKey) =>
+    set((state) => {
+      const section = state.document.resumeInformation[sectionKey];
+      if (!section) return state;
+      return withDocumentHistory(state, touchDocument(state.document, {
+        resumeInformation: {
+          ...state.document.resumeInformation,
+          [sectionKey]: { ...section, points: [...(section.points ?? []), ""] },
+        },
+      }));
+    }),
+
+  updatePoint: (sectionKey, index, value) =>
+    set((state) => {
+      const section = state.document.resumeInformation[sectionKey];
+      if (!section) return state;
+      const points = [...(section.points ?? [])];
+      points[index] = value;
+      return withDocumentHistory(state, touchDocument(state.document, {
+        resumeInformation: {
+          ...state.document.resumeInformation,
+          [sectionKey]: { ...section, points },
+        },
+      }));
+    }),
+
+  movePoint: (sectionKey, index, direction) =>
+    set((state) => {
+      const section = state.document.resumeInformation[sectionKey];
+      if (!section?.points) return state;
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= section.points.length) return state;
+      const points = [...section.points];
+      [points[index], points[targetIndex]] = [points[targetIndex], points[index]];
+      return withDocumentHistory(state, touchDocument(state.document, {
+        resumeInformation: {
+          ...state.document.resumeInformation,
+          [sectionKey]: { ...section, points },
+        },
+      }));
+    }),
+
+  duplicatePoint: (sectionKey, index) =>
+    set((state) => {
+      const section = state.document.resumeInformation[sectionKey];
+      if (!section?.points?.[index] && section?.points?.[index] !== "") return state;
+      const points = [...section.points];
+      points.splice(index + 1, 0, points[index]);
+      return withDocumentHistory(state, touchDocument(state.document, {
+        resumeInformation: {
+          ...state.document.resumeInformation,
+          [sectionKey]: { ...section, points },
+        },
+      }));
+    }),
+
+  deletePoint: (sectionKey, index) =>
+    set((state) => {
+      const section = state.document.resumeInformation[sectionKey];
+      if (!section?.points) return state;
+      const points = section.points.filter((_, pointIndex) => pointIndex !== index);
+      return withDocumentHistory(state, touchDocument(state.document, {
+        resumeInformation: {
+          ...state.document.resumeInformation,
+          [sectionKey]: { ...section, points },
+        },
+      }));
     }),
 
   addDetail: (sectionKey) =>
@@ -513,7 +832,7 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
   merge: (persistedState, currentState) => {
     const persistedDocument = (persistedState as Partial<ResumeStore>)?.document;
     return isResumeDocument(persistedDocument)
-      ? { ...currentState, document: persistedDocument }
+      ? { ...currentState, document: normalizeResumeDocument(persistedDocument) }
       : currentState;
   },
 }));

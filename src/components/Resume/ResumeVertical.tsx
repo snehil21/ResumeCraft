@@ -66,10 +66,10 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
                   ) : (
                     <span />
                   )}
-                  {item.startDate && item.endDate ? (
+                  {item.startDate && (item.endDate || item.currentRole) ? (
                     <span className={styles.date}>
                       {getFormattedDate(item.startDate)} -{" "}
-                      {getFormattedDate(item.endDate)}
+                      {item.currentRole ? "Present" : getFormattedDate(item.endDate)}
                     </span>
                   ) : null}
                 </div>
@@ -94,6 +94,7 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
                 ) : (
                   <span />
                 )}
+                {item.startDate && item.endDate ? <span className={styles.date}>{getFormattedDate(item.startDate)} - {getFormattedDate(item.endDate)}</span> : null}
               </div>
             ))}
           </div>
@@ -176,6 +177,8 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
                 ) : (
                   <span />
                 )}
+                {item.grade ? <p className={styles.college}>{item.grade}</p> : null}
+                {item.location ? <p className={styles.location}><MapPin size={14} /> {item.location}</p> : null}
               </div>
             ))}
           </div>
@@ -228,6 +231,26 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
           <p className={styles.otherText}>{info.other?.detail as string}</p>
         </div>
       ),
+    };
+
+    const renderGenericSection = (sectionKey: string) => {
+      const section = information[sectionKey];
+      if (!section) return null;
+      return (
+        <div key={sectionKey} className={`${styles.section} ${section.visible && section.sectionTitle ? "" : styles.hidden}`}>
+          <h2 className={styles.sectionTitle}>{section.sectionTitle}</h2>
+          {typeof section.detail === "string" && section.detail ? <p className={styles.otherText}>{section.detail}</p> : null}
+          {section.details?.map((item: any) => (
+            <div className={styles.item} key={item.id}>
+              <div className={styles.itemHeader}><p className={styles.title}>{item.title}</p>{item.startDate ? <span className={styles.date}>{getFormattedDate(item.startDate)}{item.endDate ? ` - ${getFormattedDate(item.endDate)}` : ""}</span> : null}</div>
+              {item.subtitle || item.companyName || item.college ? <p className={styles.company}>{item.subtitle || item.companyName || item.college}</p> : null}
+              {item.location ? <p className={styles.location}><MapPin size={14} /> {item.location}</p> : null}
+              {item.points?.length ? <ul className={styles.points}>{item.points.map((point: string, index: number) => <li key={`${point}-${index}`}>{point}</li>)}</ul> : null}
+            </div>
+          ))}
+          {section.points?.length ? <ul className={styles.points}>{section.points.map((point, index) => point ? <li key={`${point}-${index}`}>{point}</li> : null)}</ul> : null}
+        </div>
+      );
     };
 
     useEffect(() => {
@@ -298,13 +321,17 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
               ) : (
                 <span />
               )}
+              {(info.basicInfo?.detail as any)?.website ? (
+                <a className={styles.link} href={(info.basicInfo?.detail as any)?.website}><Paperclip size={14} /> {(info.basicInfo?.detail as any)?.website}</a>
+              ) : null}
+              {(info.basicInfo?.detail as any)?.location ? (
+                <span className={styles.link}><MapPin size={14} /> {(info.basicInfo?.detail as any)?.location}</span>
+              ) : null}
             </div>
           </div>
 
           <div className={styles.main}>
-            {layout.sectionOrder.map(
-              (section) => sectionDiv[section]
-            )}
+            {layout.sectionOrder.map((section) => sectionDiv[section] ?? renderGenericSection(section))}
           </div>
         </div>
       </div>

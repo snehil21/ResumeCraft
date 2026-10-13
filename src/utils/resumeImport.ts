@@ -176,6 +176,7 @@ const createWorkDetails = (draft: ImportReviewDraft): WorkExpDetail[] =>
       companyName,
       startDate: dateRange?.start,
       endDate: dateRange?.isCurrent ? "Present" : dateRange?.end,
+      currentRole: Boolean(dateRange?.isCurrent),
       points: lines.slice(1),
     };
   });
@@ -198,11 +199,14 @@ const createEducationDetails = (draft: ImportReviewDraft): EducationDetail[] =>
 const createProjectDetails = (draft: ImportReviewDraft): ProjectDetail[] =>
   getIncludedSections(draft, "projects").map((section, index) => {
     const lines = withoutDateLines(cleanLines(section.content), section.dateRanges);
+    const dateRange = section.dateRanges[0];
     return {
       id: `import-project-${index}`,
       title: lines[0] ?? "",
       overview: lines[1] ?? "",
       points: lines.slice(2),
+      startDate: dateRange?.start,
+      endDate: dateRange?.isCurrent ? "Present" : dateRange?.end,
     };
   });
 
@@ -229,7 +233,6 @@ export const buildImportedResumeInformation = (
     ...draft.unrecognized
       .filter((block) => block.include)
       .map((block) => `${block.heading}\n${block.content}`.trim()),
-    draft.contact.location ? `Location\n${draft.contact.location}` : "",
     draft.contact.otherLinks ? `Additional links\n${draft.contact.otherLinks}` : "",
   ].filter(Boolean);
 
@@ -240,6 +243,7 @@ export const buildImportedResumeInformation = (
     phone: draft.contact.phone,
     linkedin: draft.contact.linkedin,
     github: draft.contact.github,
+    location: draft.contact.location,
   };
 
   return {

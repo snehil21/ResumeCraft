@@ -1,14 +1,15 @@
 import React, { FC, useEffect } from "react";
-import { X } from "react-feather";
+import { ArrowDown, ArrowUp, Copy, X } from "react-feather";
 
 import InputControl from "../InputControl/InputControl";
 import BasicInfo from "./BasicInfo";
 import WorkExp from "./WorkExp";
 import Project from "./Project";
 import Education from "./Education";
-import Achievements from "./Achievements";
 import Summary from "./Summary";
 import Other from "./Other";
+import SectionManager from "./SectionManager";
+import GenericSectionEditor from "./GenericSectionEditor";
 
 import styles from "./Editor.module.css";
 import { useResumeStore } from "../../store";
@@ -32,6 +33,8 @@ const Editor: FC<EditorProps> = ({ sections }) => {
     updateResumeSection,
     addDetail,
     deleteDetail,
+    moveDetail,
+    duplicateDetail,
   } = useResumeStore();
 
   const activeSection = document.resumeInformation[activeSectionKey];
@@ -48,6 +51,10 @@ const Editor: FC<EditorProps> = ({ sections }) => {
   }, [activeSectionKey, activeDetailIndex, activeSection, setCurrentFormValues]);
 
   const persistValues = (values: FormValues) => {
+    if (activeSection?.kind === "text" && activeSectionKey !== SECTIONS.other) {
+      updateResumeSection(activeSectionKey, { detail: values.other ?? "", sectionTitle });
+      return;
+    }
     if (activeSectionKey === SECTIONS.basicInfo) {
       updateResumeSection(activeSectionKey, {
         detail: buildDetailForSection(activeSectionKey, values) as any,
@@ -113,11 +120,6 @@ const Editor: FC<EditorProps> = ({ sections }) => {
           <WorkExp
             values={currentFormValues}
             setValues={setValues}
-            handlePointUpdate={(value, index) => {
-              const points = [...(currentFormValues.points || [])];
-              points[index] = value;
-              setValues({ ...currentFormValues, points });
-            }}
           />
         );
       case SECTIONS.project:
@@ -125,11 +127,6 @@ const Editor: FC<EditorProps> = ({ sections }) => {
           <Project
             values={currentFormValues}
             setValues={setValues}
-            handlePointUpdate={(value, index) => {
-              const points = [...(currentFormValues.points || [])];
-              points[index] = value;
-              setValues({ ...currentFormValues, points });
-            }}
           />
         );
       case SECTIONS.education:
@@ -140,16 +137,7 @@ const Editor: FC<EditorProps> = ({ sections }) => {
           />
         );
       case SECTIONS.achievement:
-        return (
-          <Achievements
-            values={currentFormValues}
-            handlePointUpdate={(value, index) => {
-              const points = [...(currentFormValues.points || [])];
-              points[index] = value;
-              setValues({ ...currentFormValues, points });
-            }}
-          />
-        );
+        return <GenericSectionEditor sectionKey={activeSectionKey} />;
       case SECTIONS.summary:
         return (
           <Summary
@@ -162,7 +150,9 @@ const Editor: FC<EditorProps> = ({ sections }) => {
           <Other values={currentFormValues} setValues={setValues} />
         );
       default:
-        return null;
+        return activeSection?.kind === "list" || activeSection?.kind === "text"
+          ? <GenericSectionEditor sectionKey={activeSectionKey} />
+          : null;
     }
   };
 
@@ -174,25 +164,34 @@ const Editor: FC<EditorProps> = ({ sections }) => {
     deleteDetail(activeSectionKey, index);
   };
 
-  const sectionKeys = Object.keys(SECTIONS) as Array<keyof typeof SECTIONS>;
+  const sectionKeys = [
+    SECTIONS.basicInfo,
+    ...document.layout.sectionOrder.filter(
+      (key) => document.resumeInformation[key] && !document.resumeInformation[key].deleted
+    ),
+  ];
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
+      <div className={styles.header} role="tablist" aria-label="Resume sections">
         {sectionKeys?.map((key) => (
-          <div
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeSectionKey === key}
             className={`${styles.section} ${
               activeSectionKey === key ? styles.active : ""
             }`}
             key={key}
             onClick={() => setActiveSectionKey(key)}
           >
-            {sections[key]}
-          </div>
+            {document.resumeInformation[key]?.sectionTitle || sections[key as keyof typeof sections] || "Section"}
+          </button>
         ))}
       </div>
 
       <div className={styles.body}>
+        <SectionManager />
         <InputControl
           label="Title"
           placeholder="Enter section title"
@@ -215,20 +214,19 @@ const Editor: FC<EditorProps> = ({ sections }) => {
                   onClick={() => setActiveDetailIndex(index)}
                 >
                   <p>
-                    {sections[activeSectionKey as keyof typeof sections]} {index + 1}
+                    {activeSection.sectionTitle} {index + 1}
                   </p>
-                  <X
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      handleDeleteDetail(index);
-                    }}
-                  />
+                  <div className={styles.entryActions}>
+                    <button type="button" disabled={index === 0} onClick={(event) => { event.stopPropagation(); moveDetail(activeSectionKey, index, -1); }} aria-label={`Move entry ${index + 1} up`}><ArrowUp /></button>
+                    <button type="button" disabled={index === activeSection.details!.length - 1} onClick={(event) => { event.stopPropagation(); moveDetail(activeSectionKey, index, 1); }} aria-label={`Move entry ${index + 1} down`}><ArrowDown /></button>
+                    <button type="button" onClick={(event) => { event.stopPropagation(); duplicateDetail(activeSectionKey, index); }} aria-label={`Duplicate entry ${index + 1}`}><Copy /></button>
+                    <button type="button" onClick={(event) => { event.stopPropagation(); handleDeleteDetail(index); }} aria-label={`Delete entry ${index + 1}`}><X /></button>
+                  </div>
                 </div>
               ))
             : ""}
           {activeSection?.details &&
-          Array.isArray(activeSection.details) &&
-          activeSection.details.length > 0 ? (
+          Array.isArray(activeSection.details) ? (
             <div className={styles.new} onClick={handleAddNew}>
               +New
             </div>

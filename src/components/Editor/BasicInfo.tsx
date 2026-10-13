@@ -30,6 +30,10 @@ const BasicInfo: FC<BasicInfoProps> = ({ values, setValues }) => {
         />
       </div>
       <div className={styles.row}>
+        <InputControl label="Location" value={values.location || ""} placeholder="City, Country" onChange={(event) => setValues((prev) => ({ ...prev, location: event.target.value }))} />
+        <InputControl label="Website" value={values.website || ""} placeholder="yourportfolio.com" onChange={(event) => setValues((prev) => ({ ...prev, website: event.target.value }))} />
+      </div>
+      <div className={styles.row}>
         <InputControl
           label="Linkedin Link"
           value={values.linkedin || ""}

@@ -66,6 +66,8 @@ export const buildDetailForSection = (
         github: formValues.github,
         email: formValues.email,
         phone: formValues.phone,
+        location: formValues.location,
+        website: formValues.website,
       };
 
     case SECTIONS.workExp:
@@ -77,6 +79,7 @@ export const buildDetailForSection = (
         companyName: formValues.companyName,
         location: formValues.location,
         points: formValues.points,
+        currentRole: formValues.currentRole,
       };
 
     case SECTIONS.project:
@@ -86,6 +89,8 @@ export const buildDetailForSection = (
         overview: formValues.overview,
         github: formValues.github,
         points: formValues.points,
+        startDate: formValues.startDate,
+        endDate: formValues.endDate,
       };
 
     case SECTIONS.education:
@@ -94,6 +99,8 @@ export const buildDetailForSection = (
         college: formValues.college,
         startDate: formValues.startDate,
         endDate: formValues.endDate,
+        grade: formValues.grade,
+        location: formValues.location,
       };
 
     case SECTIONS.achievement:
