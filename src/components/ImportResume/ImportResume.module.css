@@ -593,13 +593,504 @@
 .nextStep button {
   min-width: 160px;
   min-height: 38px;
-  border: 0;
+  padding: 0 14px;
+  border: 1px solid #25211e;
   border-radius: 8px;
-  background: #e8e1da;
-  color: #8a8179;
+  background: #25211e;
+  color: #fffdf9;
   font: inherit;
   font-size: 0.7rem;
   font-weight: 750;
+  cursor: pointer;
+}
+
+.nextStep button:hover {
+  border-color: #b75024;
+  background: #b75024;
+}
+
+.reviewMain {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 50px 0 90px;
+}
+
+.reviewHeader {
+  max-width: 760px;
+}
+
+.backButton {
+  margin: 0 0 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: transparent;
+  color: #5d554f;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.backButton svg {
+  width: 17px;
+  height: 17px;
+}
+
+.reviewHeader .eyebrow {
+  margin-bottom: 11px;
+}
+
+.reviewHeader h1 {
+  margin: 0;
+  color: #211d1a;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.5rem, 4.4vw, 4.25rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+}
+
+.reviewHeader > p:last-child {
+  max-width: 690px;
+  margin: 18px 0 0;
+  color: #655d56;
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
+
+.reviewLayout {
+  margin-top: 42px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 24px;
+  align-items: start;
+}
+
+.reviewContent {
+  min-width: 0;
+  display: grid;
+  gap: 20px;
+}
+
+.reviewGroup,
+.originalText,
+.confirmPanel {
+  border: 1px solid #ddd4ca;
+  border-radius: 16px;
+  background: rgba(255, 253, 249, 0.96);
+  box-shadow: 0 12px 32px rgba(70, 51, 38, 0.055);
+}
+
+.reviewGroup {
+  padding: 25px;
+}
+
+.reviewGroupHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.reviewGroupHeading > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.reviewGroupHeading > div > span {
+  width: 33px;
+  height: 33px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #efe1d5;
+  color: #9b401c;
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.reviewGroupHeading h2,
+.confirmPanel h2 {
+  margin: 0;
+  color: #2b2622;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.35rem;
+}
+
+.reviewGroupHeading p {
+  margin: 5px 0 0;
+  color: #7b7169;
+  font-size: 0.77rem;
+  line-height: 1.45;
+}
+
+.needsReviewBadge,
+.readyBadge,
+.countBadge {
+  min-height: 29px;
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-style: normal;
+  font-weight: 780;
+  white-space: nowrap;
+}
+
+.needsReviewBadge {
+  background: #fff0d4;
+  color: #80550f;
+}
+
+.readyBadge {
+  background: #e6f4ec;
+  color: #286448;
+}
+
+.countBadge {
+  background: #f1e9e1;
+  color: #6f5544;
+}
+
+.needsReviewBadge svg,
+.readyBadge svg {
+  width: 13px;
+  height: 13px;
+}
+
+.contactGrid {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.contactGrid label,
+.reviewCard > label,
+.dateRow > label {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.contactGrid label > span,
+.reviewCard > label > span,
+.dateRow label > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #504943;
+  font-size: 0.7rem;
+  font-weight: 760;
+}
+
+.contactGrid label em {
+  color: #9a650f;
+  font-size: 0.58rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.contactGrid input,
+.contactGrid textarea,
+.reviewCard input[type="text"],
+.reviewCard > label > input,
+.reviewCard textarea,
+.dateRow input {
+  width: 100%;
+  border: 1px solid #d7cec5;
+  border-radius: 9px;
+  background: #fff;
+  color: #2f2a26;
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.contactGrid input,
+.reviewCard > label > input,
+.dateRow input {
+  min-height: 42px;
+  padding: 0 11px;
+}
+
+.contactGrid textarea {
+  min-height: 78px;
+  padding: 10px 11px;
+  resize: vertical;
+}
+
+.fullField {
+  grid-column: 1 / -1;
+}
+
+.reviewCards {
+  margin-top: 20px;
+  display: grid;
+  gap: 13px;
+}
+
+.reviewCard {
+  padding: 17px;
+  display: grid;
+  gap: 14px;
+  border: 1px solid #ded5cc;
+  border-radius: 12px;
+  background: #fcfaf6;
+  transition: opacity 150ms ease, background 150ms ease;
+}
+
+.excludedCard {
+  background: #f1ede8;
+  opacity: 0.72;
+}
+
+.reviewCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.reviewCardTop > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.reviewCardTop p {
+  margin: 0;
+  color: #9b401c;
+  font-size: 0.68rem;
+  font-weight: 820;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.includeToggle {
+  min-height: 34px;
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #d9cfc6;
+  border-radius: 8px;
+  background: #fff;
+  color: #5c534c;
+  font-size: 0.65rem;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.includeToggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.includeToggle svg {
+  width: 14px;
+  height: 14px;
+}
+
+.reviewCard textarea {
+  min-height: 120px;
+  padding: 11px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.reviewCard input:disabled,
+.reviewCard textarea:disabled {
+  background: #ede8e2;
+  color: #847a72;
+}
+
+.dateReview {
+  padding-top: 12px;
+  border-top: 1px solid #e4dcd4;
+}
+
+.dateReview > p {
+  margin: 0 0 10px;
+  color: #4f4842;
+  font-size: 0.7rem;
+  font-weight: 780;
+}
+
+.dateRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.dateRow + .dateRow {
+  margin-top: 10px;
+}
+
+.currentToggle {
+  min-height: 42px;
+  padding: 0 8px;
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center;
+  gap: 6px !important;
+  color: #5b524b;
+  font-size: 0.67rem;
+  font-weight: 740;
+}
+
+.currentToggle input {
+  width: auto;
+  min-height: auto;
+}
+
+.unrecognizedReason {
+  color: #765d4b !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.4;
+  text-transform: none !important;
+}
+
+.allRecognized {
+  margin-top: 20px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-radius: 10px;
+  background: #eaf5ee;
+  color: #286448;
+  font-size: 0.78rem;
+  font-weight: 720;
+}
+
+.allRecognized svg {
+  width: 17px;
+}
+
+.originalText {
+  padding: 18px 20px;
+}
+
+.originalText summary {
+  color: #514943;
+  font-size: 0.78rem;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.originalText textarea {
+  width: 100%;
+  min-height: 260px;
+  margin-top: 15px;
+  padding: 13px;
+  resize: vertical;
+  border: 1px solid #d8cfc7;
+  border-radius: 9px;
+  background: #f8f4ee;
+  color: #403934;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.confirmPanel {
+  position: sticky;
+  top: 92px;
+  padding: 22px;
+}
+
+.confirmPanel .eyebrow {
+  margin-bottom: 8px;
+}
+
+.confirmPanel dl {
+  margin: 20px 0 0;
+  display: grid;
+  gap: 8px;
+}
+
+.confirmPanel dl div {
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 9px;
+  background: #f3ede6;
+}
+
+.confirmPanel dt {
+  color: #6e655e;
+  font-size: 0.7rem;
+}
+
+.confirmPanel dd {
+  margin: 0;
+  color: #2e2925;
+  font-size: 0.92rem;
+  font-weight: 820;
+}
+
+.replaceWarning {
+  margin-top: 14px;
+  padding: 11px;
+  display: flex;
+  gap: 8px;
+  border-radius: 9px;
+  background: #fff0d8;
+  color: #765014;
+}
+
+.replaceWarning svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.replaceWarning p,
+.confirmNote {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.confirmButton {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 16px;
+  padding: 0 13px;
+  border: 1px solid #25211e;
+  border-radius: 9px;
+  background: #25211e;
+  color: #fffdf9;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 780;
+  cursor: pointer;
+}
+
+.confirmButton:hover {
+  border-color: #b75024;
+  background: #b75024;
+}
+
+.confirmNote {
+  margin-top: 10px;
+  color: #7e746c;
+  text-align: center;
 }
 
 .supportNote {
@@ -632,10 +1123,14 @@
 }
 
 .backLink:focus-visible,
+.backButton:focus-visible,
 .fileButton:focus-within,
 .pastePanel button:focus-visible,
 .successHeading button:focus-visible,
-.errorState button:focus-visible {
+.errorState button:focus-visible,
+.nextStep button:focus-visible,
+.confirmButton:focus-visible,
+.includeToggle:focus-within {
   outline: 3px solid rgba(221, 109, 44, 0.4);
   outline-offset: 3px;
 }
@@ -653,6 +1148,18 @@
     grid-template-columns: 1fr;
   }
 
+  .reviewMain {
+    width: min(100% - 40px, 760px);
+  }
+
+  .reviewLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .confirmPanel {
+    position: static;
+  }
+
   .resultPanel,
   .emptyState,
   .errorState {
@@ -668,6 +1175,37 @@
 
   .intro h1 {
     font-size: 2.7rem;
+  }
+
+  .reviewMain {
+    width: calc(100% - 28px);
+    padding: 38px 0 60px;
+  }
+
+  .reviewHeader h1 {
+    font-size: 2.55rem;
+  }
+
+  .reviewGroup {
+    padding: 18px;
+  }
+
+  .reviewGroupHeading,
+  .reviewCardTop {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .reviewGroupHeading > .needsReviewBadge,
+  .reviewGroupHeading > .readyBadge,
+  .reviewGroupHeading > .countBadge,
+  .reviewCardTop .includeToggle {
+    width: fit-content;
+  }
+
+  .contactGrid,
+  .dateRow {
+    grid-template-columns: 1fr;
   }
 
   .inputPanel,

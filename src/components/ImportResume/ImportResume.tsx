@@ -10,9 +10,11 @@ import {
   UploadCloud,
   X,
 } from "react-feather";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import Navbar from "../Navbar/Navbar";
+import ImportReview from "./ImportReview";
+import { useResumeStore } from "../../store";
 import {
   extractResumeTextFromFile,
   extractResumeTextFromPaste,
@@ -25,6 +27,12 @@ import {
   RESUME_SECTION_TYPES,
   ResumeSectionType,
 } from "../../utils/resumeParser";
+import {
+  buildImportedResumeDocument,
+  createImportReviewDraft,
+  ImportReviewDraft,
+} from "../../utils/resumeImport";
+import { isResumeDocumentEmpty } from "../../utils/resumeDocument";
 
 import styles from "./ImportResume.module.css";
 
@@ -41,12 +49,15 @@ const sectionLabels: Record<ResumeSectionType, string> = {
 };
 
 const ImportResume: FC = () => {
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { document, importResumeDocument } = useResumeStore();
   const [status, setStatus] = useState<ExtractionStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [pastedText, setPastedText] = useState("");
   const [extraction, setExtraction] = useState<ResumeTextExtraction | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [reviewDraft, setReviewDraft] = useState<ImportReviewDraft | null>(null);
   const parsedResume = useMemo(
     () => (extraction ? parseResumeText(extraction.text) : null),
     [extraction]
@@ -56,6 +67,7 @@ const ImportResume: FC = () => {
     setStatus("idle");
     setErrorMessage("");
     setExtraction(null);
+    setReviewDraft(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -106,10 +118,46 @@ const ImportResume: FC = () => {
     }
   };
 
+  const beginReview = () => {
+    if (!parsedResume) return;
+    setReviewDraft(createImportReviewDraft(parsedResume));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const confirmImport = () => {
+    if (!reviewDraft || !extraction) return;
+
+    if (
+      !isResumeDocumentEmpty(document) &&
+      !window.confirm(
+        "Replace your current local resume draft with this reviewed import? Export a JSON backup first if you want to keep it."
+      )
+    ) {
+      return;
+    }
+
+    const importedDocument = buildImportedResumeDocument(
+      reviewDraft,
+      document,
+      extraction.fileName
+    );
+    importResumeDocument(importedDocument);
+    navigate("/resumebuilder");
+  };
+
   return (
     <div className={styles.page}>
       <Navbar />
 
+      {reviewDraft ? (
+        <ImportReview
+          draft={reviewDraft}
+          replacesExistingDraft={!isResumeDocumentEmpty(document)}
+          onChange={setReviewDraft}
+          onBack={() => setReviewDraft(null)}
+          onConfirm={confirmImport}
+        />
+      ) : (
       <main className={styles.main}>
         <header className={styles.intro}>
           <Link to="/start?mode=upload" className={styles.backLink}>
@@ -307,7 +355,7 @@ const ImportResume: FC = () => {
                     Next, you will be able to correct every detected field before
                     anything changes in your active draft.
                   </p>
-                  <button type="button" disabled>Review screen arrives in Step 9</button>
+                  <button type="button" onClick={beginReview}>Review detected content</button>
                 </div>
               </div>
             ) : null}
@@ -327,6 +375,7 @@ const ImportResume: FC = () => {
           </p>
         </section>
       </main>
+      )}
     </div>
   );
 };
