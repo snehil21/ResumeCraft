@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { SECTIONS, SECTION_LABELS, SectionKey } from "../constants";
 import {
   FormValues,
@@ -8,6 +9,10 @@ import {
   Section,
   TemplateId,
 } from "../types";
+import {
+  isResumeDocument,
+  RESUME_STORAGE_KEY,
+} from "../utils/resumeDocument";
 
 const DEFAULT_COLUMNS: ResumeColumns = [
   [SECTIONS.project, SECTIONS.education, SECTIONS.summary],
@@ -281,10 +286,13 @@ interface ResumeStore {
   deleteDetail: (sectionKey: string, index: number) => void;
   startBlankResume: () => void;
   loadSampleResume: () => void;
+  resetResume: () => void;
+  importResumeDocument: (document: ResumeDocument) => void;
+  ensureDocumentSaved: () => void;
 }
 
-export const useResumeStore = create<ResumeStore>((set) => ({
-  document: createResumeDocument("sample"),
+export const useResumeStore = create<ResumeStore>()(persist((set) => ({
+  document: createResumeDocument("blank"),
   activeSectionKey: SECTIONS.basicInfo,
   activeDetailIndex: 0,
   currentFormValues: {},
@@ -363,6 +371,37 @@ export const useResumeStore = create<ResumeStore>((set) => ({
       currentFormValues: {},
     }),
 
+  resetResume: () =>
+    set((state) => {
+      const blankDocument = createResumeDocument("blank");
+
+      return {
+        document: {
+          ...blankDocument,
+          id: state.document.id,
+          title: state.document.title,
+          createdAt: state.document.createdAt,
+        },
+        activeSectionKey: SECTIONS.basicInfo,
+        activeDetailIndex: 0,
+        currentFormValues: {},
+      };
+    }),
+
+  importResumeDocument: (document) =>
+    set({
+      document: {
+        ...document,
+        updatedAt: new Date().toISOString(),
+      },
+      activeSectionKey: SECTIONS.basicInfo,
+      activeDetailIndex: 0,
+      currentFormValues: {},
+    }),
+
+  ensureDocumentSaved: () =>
+    set((state) => ({ document: state.document })),
+
   addDetail: (sectionKey) =>
     set((state) => {
       const section = state.document.resumeInformation[sectionKey];
@@ -410,4 +449,37 @@ export const useResumeStore = create<ResumeStore>((set) => ({
         ),
       };
     }),
+}), {
+  name: RESUME_STORAGE_KEY,
+  version: 1,
+  storage: createJSONStorage(() => ({
+    getItem: (name) => {
+      try {
+        return window.localStorage.getItem(name);
+      } catch {
+        return null;
+      }
+    },
+    setItem: (name, value) => {
+      try {
+        window.localStorage.setItem(name, value);
+      } catch {
+        // The builder verifies the persisted copy and exposes a failure state.
+      }
+    },
+    removeItem: (name) => {
+      try {
+        window.localStorage.removeItem(name);
+      } catch {
+        // Storage may be unavailable in privacy-restricted browser contexts.
+      }
+    },
+  })),
+  partialize: (state) => ({ document: state.document }),
+  merge: (persistedState, currentState) => {
+    const persistedDocument = (persistedState as Partial<ResumeStore>)?.document;
+    return isResumeDocument(persistedDocument)
+      ? { ...currentState, document: persistedDocument }
+      : currentState;
+  },
 }));

@@ -28,6 +28,101 @@
   align-items: center;
 }
 
+.draftBar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.saveStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 126px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.saveStatus svg,
+.draftActions svg {
+  width: 16px;
+  height: 16px;
+}
+
+.saving {
+  color: #7c5c24;
+}
+
+.saving svg {
+  animation: savingSpin 1s linear infinite;
+}
+
+.saved {
+  color: #287052;
+}
+
+.error {
+  color: #b42318;
+}
+
+.draftActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.draftActions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #374151;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.draftActions button:hover {
+  border-color: #9ca3af;
+  background: #f3f4f6;
+}
+
+.draftActions button:focus-visible {
+  outline: 3px solid rgba(35, 156, 226, 0.24);
+  outline-offset: 2px;
+}
+
+.fileInput {
+  display: none;
+}
+
+.draftNotice {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: center;
+  color: #4b5563;
+  font-size: 0.8rem;
+}
+
+@keyframes savingSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .heading {
   font-weight: 600;
   font-size: 1.8rem;
@@ -295,6 +390,25 @@
 
   .heading {
     font-size: 1.3rem;
+  }
+
+  .draftBar {
+    align-items: stretch;
+  }
+
+  .saveStatus {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .draftActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .draftActions button {
+    justify-content: center;
   }
 
   .subtitle {

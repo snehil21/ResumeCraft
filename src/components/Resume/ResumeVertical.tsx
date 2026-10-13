@@ -244,7 +244,7 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
 
     // Check if resume has any user data
     const hasUserData = (basicInfo: any) => {
-      return basicInfo?.detail?.name && basicInfo.detail.name !== "John Doe";
+      return Boolean(basicInfo?.detail?.name?.trim());
     };
 
     return (

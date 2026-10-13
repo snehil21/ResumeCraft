@@ -10,6 +10,7 @@ import {
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import { useResumeStore } from "../../store";
+import { isResumeDocumentEmpty } from "../../utils/resumeDocument";
 import Navbar from "../Navbar/Navbar";
 
 import styles from "./Start.module.css";
@@ -17,15 +18,23 @@ import styles from "./Start.module.css";
 const Start: FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { startBlankResume, loadSampleResume } = useResumeStore();
+  const { document, startBlankResume, loadSampleResume } = useResumeStore();
   const selectedMode = searchParams.get("mode");
 
+  const canReplaceDraft = (nextDraft: string) =>
+    isResumeDocumentEmpty(document) ||
+    window.confirm(
+      `Replace your current draft with ${nextDraft}? Export a JSON backup first if you want to keep it.`
+    );
+
   const beginBlankResume = () => {
+    if (!canReplaceDraft("a blank resume")) return;
     startBlankResume();
     navigate("/resumebuilder");
   };
 
   const beginWithSample = () => {
+    if (!canReplaceDraft("the sample resume")) return;
     loadSampleResume();
     navigate("/resumebuilder");
   };

@@ -323,7 +323,7 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
 
     // Check if resume has any user data
     const hasUserData = (basicInfo: any) => {
-      return basicInfo?.detail?.name && basicInfo.detail.name !== "John Doe";
+      return Boolean(basicInfo?.detail?.name?.trim());
     };
 
     return (
@@ -337,7 +337,7 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
         >
           {!hasUserData(info.basicInfo) && (
             <div className={styles.placeholderMessage}>
-              📝 Update the details in above form to get your resume reday
+              📝 Add your details to start building the resume preview
             </div>
           )}
           <div className={styles.header}>
