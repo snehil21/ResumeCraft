@@ -1,4 +1,4 @@
-import React, { ChangeEvent, DragEvent, FC, useRef, useState } from "react";
+import React, { ChangeEvent, DragEvent, FC, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
   ArrowLeft,
@@ -20,10 +20,25 @@ import {
   ResumeExtractionError,
   ResumeTextExtraction,
 } from "../../utils/resumeTextExtraction";
+import {
+  parseResumeText,
+  RESUME_SECTION_TYPES,
+  ResumeSectionType,
+} from "../../utils/resumeParser";
 
 import styles from "./ImportResume.module.css";
 
 type ExtractionStatus = "idle" | "extracting" | "success" | "error";
+
+const sectionLabels: Record<ResumeSectionType, string> = {
+  summary: "Summary",
+  experience: "Experience",
+  education: "Education",
+  skills: "Skills",
+  projects: "Projects",
+  certifications: "Certifications",
+  achievements: "Achievements",
+};
 
 const ImportResume: FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -32,6 +47,10 @@ const ImportResume: FC = () => {
   const [pastedText, setPastedText] = useState("");
   const [extraction, setExtraction] = useState<ResumeTextExtraction | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const parsedResume = useMemo(
+    () => (extraction ? parseResumeText(extraction.text) : null),
+    [extraction]
+  );
 
   const resetResult = () => {
     setStatus("idle");
@@ -227,12 +246,68 @@ const ImportResume: FC = () => {
                   readOnly
                   value={extraction.text}
                 />
+
+                {parsedResume ? (
+                  <section className={styles.parserSummary} aria-labelledby="parser-summary-title">
+                    <div className={styles.parserHeading}>
+                      <div>
+                        <p>Deterministic analysis</p>
+                        <h3 id="parser-summary-title">What ResumeCraft detected</h3>
+                      </div>
+                      <span>{parsedResume.dateRanges.length} date ranges</span>
+                    </div>
+
+                    <div className={styles.sectionChips} aria-label="Detected resume sections">
+                      {RESUME_SECTION_TYPES.map((type) => {
+                        const count = parsedResume.sections[type].length;
+                        return (
+                          <span key={type} className={count ? styles.detectedChip : styles.missingChip}>
+                            {sectionLabels[type]} {count ? `· ${count}` : "· not found"}
+                          </span>
+                        );
+                      })}
+                    </div>
+
+                    <dl className={styles.parserMetrics}>
+                      <div>
+                        <dt>Contact details</dt>
+                        <dd>
+                          {[
+                            parsedResume.contact.email,
+                            parsedResume.contact.phone,
+                            ...parsedResume.contact.links,
+                          ].filter(Boolean).length}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Needs review</dt>
+                        <dd>{parsedResume.needsReview.length}</dd>
+                      </div>
+                      <div>
+                        <dt>Unrecognized blocks</dt>
+                        <dd>{parsedResume.unrecognized.length}</dd>
+                      </div>
+                    </dl>
+
+                    {parsedResume.unrecognized.length ? (
+                      <div className={styles.recoveryNote}>
+                        <AlertCircle aria-hidden="true" />
+                        <p>
+                          Nothing was discarded. {parsedResume.unrecognized.length} unrecognized
+                          {parsedResume.unrecognized.length === 1 ? " block is" : " blocks are"} preserved
+                          with the original text for review.
+                        </p>
+                      </div>
+                    ) : null}
+                  </section>
+                ) : null}
+
                 <div className={styles.nextStep}>
                   <p>
-                    Next, ResumeCraft will detect sections and let you review
-                    every field before changing your active draft.
+                    Next, you will be able to correct every detected field before
+                    anything changes in your active draft.
                   </p>
-                  <button type="button" disabled>Parsing arrives in Step 8</button>
+                  <button type="button" disabled>Review screen arrives in Step 9</button>
                 </div>
               </div>
             ) : null}

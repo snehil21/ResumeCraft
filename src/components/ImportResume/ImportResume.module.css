@@ -455,6 +455,122 @@
   font-size: 0.76rem;
 }
 
+.parserSummary {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid #ded4ca;
+  border-radius: 12px;
+  background: #fffdf9;
+}
+
+.parserHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.parserHeading p {
+  margin: 0 0 4px;
+  color: #a64923;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.parserHeading h3 {
+  margin: 0;
+  color: #2b2622;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.12rem;
+  font-weight: 600;
+}
+
+.parserHeading > span {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #f2e7dc;
+  color: #77442d;
+  font-size: 0.66rem;
+  font-weight: 750;
+}
+
+.sectionChips {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.sectionChips span {
+  padding: 7px 9px;
+  border: 1px solid;
+  border-radius: 8px;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.detectedChip {
+  border-color: #bcd8c8 !important;
+  background: #edf7f1;
+  color: #286448;
+}
+
+.missingChip {
+  border-color: #e1d8d0 !important;
+  background: #f7f3ee;
+  color: #8a8077;
+}
+
+.parserMetrics {
+  margin: 15px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.parserMetrics div {
+  padding: 10px;
+  border-radius: 9px;
+  background: #f7f2ec;
+}
+
+.parserMetrics dt {
+  color: #766c64;
+  font-size: 0.63rem;
+}
+
+.parserMetrics dd {
+  margin: 4px 0 0;
+  color: #302a26;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.recoveryNote {
+  margin-top: 12px;
+  padding: 10px 11px;
+  display: flex;
+  gap: 8px;
+  border-radius: 9px;
+  background: #fff5df;
+  color: #745116;
+}
+
+.recoveryNote svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.recoveryNote p {
+  margin: 0;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
 .nextStep {
   margin-top: 16px;
   padding: 14px;
@@ -574,6 +690,20 @@
 
   .nextStep button {
     width: 100%;
+  }
+
+  .parserHeading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .parserHeading > span {
+    width: fit-content;
+  }
+
+  .parserMetrics {
+    grid-template-columns: 1fr;
   }
 
   .supportNote ul {
