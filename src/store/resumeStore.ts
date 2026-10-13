@@ -1,11 +1,21 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { SECTIONS, SECTION_LABELS } from "../constants";
 import {
+  DEFAULT_RESUME_THEME,
+  DESIGN_LIMITS,
+  DESIGN_PRESETS,
+  SECTIONS,
+  SECTION_LABELS,
+} from "../constants";
+import {
+  DesignPreset,
   FormValues,
+  LayoutMode,
+  PageSettings,
   ResumeColumns,
   ResumeDocument,
   ResumeInformation,
+  ResumeTheme,
   Section,
   TemplateId,
 } from "../types";
@@ -63,6 +73,24 @@ const createOptionalSections = (): ResumeInformation => ({
   [SECTIONS.publications]: createListSection(SECTIONS.publications, SECTION_LABELS.publications),
   [SECTIONS.courses]: createListSection(SECTIONS.courses, SECTION_LABELS.courses),
 });
+
+const clamp = (value: number, min: number, max: number): number =>
+  Math.min(max, Math.max(min, value));
+
+const clampTheme = (current: ResumeTheme, update: Partial<ResumeTheme>): ResumeTheme => {
+  const dateFormat = update.dateFormat ?? current.dateFormat;
+  return {
+    ...current,
+    ...update,
+    dateFormat: dateFormat === "MM/YYYY" || dateFormat === "YYYY" ? dateFormat : "MMM YYYY",
+    baseFontSize: clamp(update.baseFontSize ?? current.baseFontSize, DESIGN_LIMITS.baseFontSize.min, DESIGN_LIMITS.baseFontSize.max),
+    nameFontSize: clamp(update.nameFontSize ?? current.nameFontSize, DESIGN_LIMITS.nameFontSize.min, DESIGN_LIMITS.nameFontSize.max),
+    headingFontSize: clamp(update.headingFontSize ?? current.headingFontSize, DESIGN_LIMITS.headingFontSize.min, DESIGN_LIMITS.headingFontSize.max),
+    lineHeight: clamp(update.lineHeight ?? current.lineHeight, DESIGN_LIMITS.lineHeight.min, DESIGN_LIMITS.lineHeight.max),
+    sectionGap: clamp(update.sectionGap ?? current.sectionGap, DESIGN_LIMITS.sectionGap.min, DESIGN_LIMITS.sectionGap.max),
+    itemGap: clamp(update.itemGap ?? current.itemGap, DESIGN_LIMITS.itemGap.min, DESIGN_LIMITS.itemGap.max),
+  };
+};
 
 const createSampleResumeInformation = (): ResumeInformation => ({
   [SECTIONS.basicInfo]: withVisibility({
@@ -297,7 +325,19 @@ const normalizeResumeDocument = (document: ResumeDocument): ResumeDocument => {
   return {
     ...document,
     resumeInformation,
-    layout: { sectionOrder, columns },
+    theme: clampTheme(DEFAULT_RESUME_THEME, document.theme),
+    page: {
+      ...document.page,
+      margin: clamp(document.page.margin, DESIGN_LIMITS.pageMargin.min, DESIGN_LIMITS.pageMargin.max),
+    },
+    layout: {
+      sectionOrder,
+      columns,
+      mode: document.layout.mode === "one" || document.layout.mode === "two"
+        ? document.layout.mode
+        : document.template === "classic" ? "two" : "one",
+      columnRatio: clamp(document.layout.columnRatio ?? 55, DESIGN_LIMITS.columnRatio.min, DESIGN_LIMITS.columnRatio.max),
+    },
   };
 };
 
@@ -313,20 +353,13 @@ const createResumeDocument = (kind: "blank" | "sample"): ResumeDocument => {
         ? createBlankResumeInformation()
         : createSampleResumeInformation(),
     template: "classic",
-    theme: {
-      accentColor: "#b75024",
-      fontFamily: "Inter, Arial, sans-serif",
-      baseFontSize: 14,
-      lineHeight: 1.4,
-      headingScale: 1,
-      textColor: "#1f2937",
-      sectionGap: 16,
-      itemGap: 12,
-    },
+    theme: { ...DEFAULT_RESUME_THEME },
     page: { size: "A4", margin: 24 },
     layout: {
       sectionOrder: [...DEFAULT_SECTION_ORDER],
       columns: DEFAULT_COLUMNS.map((column) => [...column]) as ResumeColumns,
+      mode: "two",
+      columnRatio: 55,
     },
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -356,6 +389,12 @@ interface ResumeStore {
   currentFormValues: FormValues;
   updateResumeSection: (sectionKey: string, section: Partial<Section>) => void;
   setAccentColor: (color: string) => void;
+  updateTheme: (theme: Partial<ResumeTheme>) => void;
+  updatePageSettings: (page: Partial<PageSettings>) => void;
+  setLayoutMode: (mode: LayoutMode) => void;
+  setColumnRatio: (ratio: number) => void;
+  applyDesignPreset: (preset: DesignPreset) => void;
+  resetTemplateDefaults: () => void;
   setTemplate: (template: TemplateId) => void;
   setSectionColumns: (columns: ResumeColumns) => void;
   setSectionVisibility: (sectionKey: string, visible: boolean) => void;
@@ -425,6 +464,53 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
     set((state) => withDocumentHistory(state, touchDocument(state.document, {
         theme: { ...state.document.theme, accentColor: color },
       }))),
+
+  updateTheme: (themeUpdate) =>
+    set((state) => withDocumentHistory(state, touchDocument(state.document, {
+      theme: clampTheme(state.document.theme, themeUpdate),
+    }))),
+
+  updatePageSettings: (pageUpdate) =>
+    set((state) => withDocumentHistory(state, touchDocument(state.document, {
+      page: {
+        ...state.document.page,
+        ...pageUpdate,
+        margin: clamp(pageUpdate.margin ?? state.document.page.margin, DESIGN_LIMITS.pageMargin.min, DESIGN_LIMITS.pageMargin.max),
+      },
+    }))),
+
+  setLayoutMode: (mode) =>
+    set((state) => withDocumentHistory(state, touchDocument(state.document, {
+      layout: { ...state.document.layout, mode },
+    }))),
+
+  setColumnRatio: (ratio) =>
+    set((state) => withDocumentHistory(state, touchDocument(state.document, {
+      layout: {
+        ...state.document.layout,
+        columnRatio: clamp(ratio, DESIGN_LIMITS.columnRatio.min, DESIGN_LIMITS.columnRatio.max),
+      },
+    }))),
+
+  applyDesignPreset: (preset) =>
+    set((state) => {
+      const { pageMargin, ...themeUpdate } = DESIGN_PRESETS[preset];
+      return withDocumentHistory(state, touchDocument(state.document, {
+        theme: clampTheme(state.document.theme, themeUpdate),
+        page: { ...state.document.page, margin: pageMargin },
+      }));
+    }),
+
+  resetTemplateDefaults: () =>
+    set((state) => withDocumentHistory(state, touchDocument(state.document, {
+      theme: { ...DEFAULT_RESUME_THEME },
+      page: { size: "A4", margin: 24 },
+      layout: {
+        ...state.document.layout,
+        mode: state.document.template === "classic" ? "two" : "one",
+        columnRatio: 55,
+      },
+    }))),
 
   setTemplate: (template) =>
     set((state) => withDocumentHistory(
@@ -544,7 +630,7 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
       ];
 
       return withDocumentHistory(state, touchDocument(state.document, {
-        layout: { sectionOrder, columns: columnsFromOrder(sectionOrder) },
+        layout: { ...state.document.layout, sectionOrder, columns: columnsFromOrder(sectionOrder) },
       }));
     }),
 
@@ -572,7 +658,7 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
             ...state.document.resumeInformation,
             [duplicateKey]: duplicate,
           },
-          layout: { sectionOrder, columns: columnsFromOrder(sectionOrder) },
+          layout: { ...state.document.layout, sectionOrder, columns: columnsFromOrder(sectionOrder) },
         })),
         activeSectionKey: duplicateKey,
         activeDetailIndex: 0,
@@ -592,7 +678,7 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
             ...state.document.resumeInformation,
             [sectionKey]: { ...section, visible: false, deleted: true },
           },
-          layout: { sectionOrder, columns: columnsFromOrder(sectionOrder) },
+          layout: { ...state.document.layout, sectionOrder, columns: columnsFromOrder(sectionOrder) },
         })),
         activeSectionKey: SECTIONS.basicInfo,
         activeDetailIndex: 0,
@@ -613,7 +699,7 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
             ...state.document.resumeInformation,
             [sectionKey]: { ...section, visible: true, deleted: false },
           },
-          layout: { sectionOrder, columns: columnsFromOrder(sectionOrder) },
+          layout: { ...state.document.layout, sectionOrder, columns: columnsFromOrder(sectionOrder) },
         })),
         activeSectionKey: sectionKey,
         activeDetailIndex: 0,
@@ -636,7 +722,7 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
       return {
         ...withDocumentHistory(state, touchDocument(state.document, {
           resumeInformation: { ...state.document.resumeInformation, [sectionKey]: section },
-          layout: { sectionOrder, columns: columnsFromOrder(sectionOrder) },
+          layout: { ...state.document.layout, sectionOrder, columns: columnsFromOrder(sectionOrder) },
         })),
         activeSectionKey: sectionKey,
         activeDetailIndex: 0,

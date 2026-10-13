@@ -18,6 +18,7 @@ import {
 import styles from "./ResumeVertical.module.css";
 import { ResumeDocument } from "../../types";
 import { SECTIONS } from "../../constants";
+import { formatResumeDate } from "../../utils/formatResumeDate";
 
 interface ResumeVerticalProps {
   document: ResumeDocument;
@@ -42,11 +43,8 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
       other: information[SECTIONS.other],
     };
 
-    const getFormattedDate = (value: string): string => {
-      if (!value) return "";
-      const date = new Date(value);
-      return `${date.getMonth() + 1}/${date.getFullYear()}`;
-    };
+    const getFormattedDate = (value: string): string =>
+      formatResumeDate(value, theme.dateFormat);
 
     const sectionDiv: SectionInfo = {
       [SECTIONS.workExp]: (
@@ -263,7 +261,13 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
       container.style.setProperty("--resume-line-height", `${theme.lineHeight}`);
       container.style.setProperty("--resume-text-color", theme.textColor);
       container.style.setProperty("--resume-page-margin", `${page.margin}px`);
-    }, [page.margin, theme]);
+      container.style.setProperty("--resume-name-size", `${theme.nameFontSize}px`);
+      container.style.setProperty("--resume-heading-size", `${theme.headingFontSize}px`);
+      container.style.setProperty("--resume-section-gap", `${theme.sectionGap}px`);
+      container.style.setProperty("--resume-item-gap", `${theme.itemGap}px`);
+      container.style.setProperty("--resume-page-width", page.size === "A4" ? "210mm" : "8.5in");
+      container.style.setProperty("--resume-page-height", page.size === "A4" ? "297mm" : "11in");
+    }, [page, theme]);
 
     // Check if resume has any user data
     const hasUserData = (basicInfo: any) => {

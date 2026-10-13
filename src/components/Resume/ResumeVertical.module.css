@@ -1,18 +1,23 @@
 .container {
   --color: #239ce2;
   flex: 1;
-  max-width: 850px;
-  min-height: 900px;
+  width: var(--resume-page-width, 210mm);
+  max-width: 100%;
+  min-height: var(--resume-page-height, 297mm);
   max-height: calc(100vh - 200px);
   box-shadow: 1px 1px 3px 2px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 40px 35px;
+  padding: var(--resume-page-margin, 24px);
   position: relative;
   background-color: #ffffff;
   margin: 0 auto;
   overflow-y: auto;
+  color: var(--resume-text-color, #1f2937);
+  font-family: var(--resume-font, Inter, Arial, sans-serif);
+  font-size: var(--resume-font-size, 14px);
+  line-height: var(--resume-line-height, 1.4);
 }
 
 .placeholderMessage {
@@ -38,7 +43,7 @@
 }
 
 .header .heading {
-  font-size: 2.2rem;
+  font-size: var(--resume-name-size, 38px);
   font-weight: 700;
   text-align: left;
   text-transform: uppercase;
@@ -50,7 +55,7 @@
 .header .subHeading {
   color: var(--color);
   font-weight: 600;
-  font-size: 1rem;
+  font-size: calc(var(--resume-font-size, 14px) * 1.1);
   margin: 5px 0 0 0;
   padding: 0;
   text-transform: uppercase;
@@ -66,13 +71,13 @@
 }
 
 .header .link {
-  font-size: 0.85rem;
+  font-size: calc(var(--resume-font-size, 14px) * .9);
   display: flex;
   align-items: center;
   gap: 5px;
   cursor: pointer;
   text-decoration: none;
-  color: #333;
+  color: var(--resume-text-color, #1f2937);
   transition: color 0.3s ease;
 }
 
@@ -88,13 +93,13 @@
 .main {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: var(--resume-section-gap, 16px);
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--resume-item-gap, 12px);
 }
 
 .section.hidden {
@@ -102,7 +107,7 @@
 }
 
 .section .sectionTitle {
-  font-size: 1.1rem;
+  font-size: var(--resume-heading-size, 20px);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -110,20 +115,20 @@
   padding: 0;
   padding-bottom: 5px;
   border-bottom: 2px solid var(--color);
-  color: #000;
+  color: var(--resume-text-color, #1f2937);
 }
 
 .section .content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--resume-item-gap, 12px);
 }
 
 .section .item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-bottom: 10px;
+  gap: calc(var(--resume-item-gap, 12px) * .34);
+  padding-bottom: var(--resume-item-gap, 12px);
   border-bottom: 1px dotted #ddd;
 }
 
@@ -140,15 +145,15 @@
 }
 
 .section .item .title {
-  font-size: 1rem;
+  font-size: calc(var(--resume-font-size, 14px) * 1.08);
   font-weight: 700;
   margin: 0;
   padding: 0;
-  color: #000;
+  color: var(--resume-text-color, #1f2937);
 }
 
 .section .item .company {
-  font-size: 0.95rem;
+  font-size: var(--resume-font-size, 14px);
   font-weight: 600;
   color: var(--color);
   margin: 0;
@@ -156,7 +161,7 @@
 }
 
 .section .item .college {
-  font-size: 0.95rem;
+  font-size: var(--resume-font-size, 14px);
   font-weight: 600;
   color: var(--color);
   margin: 0;
@@ -164,8 +169,9 @@
 }
 
 .section .item .location {
-  font-size: 0.85rem;
-  color: #666;
+  font-size: calc(var(--resume-font-size, 14px) * .9);
+  color: var(--resume-text-color, #1f2937);
+  opacity: .75;
   margin: 0;
   padding: 0;
   display: flex;
@@ -174,14 +180,15 @@
 }
 
 .section .item .date {
-  font-size: 0.85rem;
-  color: #666;
+  font-size: calc(var(--resume-font-size, 14px) * .9);
+  color: var(--resume-text-color, #1f2937);
+  opacity: .75;
   font-style: italic;
   white-space: nowrap;
 }
 
 .section .link {
-  font-size: 0.85rem;
+  font-size: calc(var(--resume-font-size, 14px) * .9);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -207,24 +214,24 @@
 }
 
 .section .points li {
-  font-size: 0.9rem;
-  line-height: 1.4;
-  color: #333;
+  font-size: var(--resume-font-size, 14px);
+  line-height: inherit;
+  color: var(--resume-text-color, #1f2937);
   margin-bottom: 4px;
 }
 
 .summaryText {
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: #333;
+  font-size: var(--resume-font-size, 14px);
+  line-height: inherit;
+  color: var(--resume-text-color, #1f2937);
   margin: 0;
   padding: 5px 0;
 }
 
 .otherText {
-  font-size: 0.9rem;
-  line-height: 1.4;
-  color: #333;
+  font-size: var(--resume-font-size, 14px);
+  line-height: inherit;
+  color: var(--resume-text-color, #1f2937);
   margin: 0;
   padding: 5px 0;
   white-space: pre-wrap;
@@ -232,31 +239,8 @@
 }
 
 @media (max-width: 768px) {
-  .container {
-    padding: 30px 20px;
-    min-height: auto;
-  }
-
-  .header .heading {
-    font-size: 1.8rem;
-  }
-
-  .header .subHeading {
-    font-size: 0.9rem;
-  }
-
   .header .links {
     gap: 10px;
-    font-size: 0.75rem;
-  }
-
-  .section .sectionTitle {
-    font-size: 1rem;
-    margin: 12px 0 6px 0;
-  }
-
-  .section .item .title {
-    font-size: 0.95rem;
   }
 
   .itemHeader {
@@ -265,7 +249,6 @@
   }
 
   .section .item .date {
-    font-size: 0.75rem;
     white-space: normal;
   }
 }

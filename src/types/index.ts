@@ -116,6 +116,9 @@ export interface ResumeInformation {
 
 export type TemplateId = "classic" | "vertical";
 export type PageSize = "A4" | "LETTER";
+export type DateFormat = "MMM YYYY" | "MM/YYYY" | "YYYY";
+export type LayoutMode = "one" | "two";
+export type DesignPreset = "compact" | "balanced" | "spacious";
 
 export interface ResumeTheme {
   accentColor: string;
@@ -126,6 +129,9 @@ export interface ResumeTheme {
   textColor: string;
   sectionGap: number;
   itemGap: number;
+  nameFontSize: number;
+  headingFontSize: number;
+  dateFormat: DateFormat;
 }
 
 export interface PageSettings {
@@ -138,6 +144,8 @@ export type ResumeColumns = [string[], string[]];
 export interface ResumeLayout {
   sectionOrder: string[];
   columns: ResumeColumns;
+  mode: LayoutMode;
+  columnRatio: number;
 }
 
 export interface ResumeDocument {

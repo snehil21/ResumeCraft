@@ -49,7 +49,10 @@ export const isResumeDocument = (value: unknown): value is ResumeDocument => {
     typeof theme.headingScale === "number" &&
     typeof theme.textColor === "string" &&
     typeof theme.sectionGap === "number" &&
-    typeof theme.itemGap === "number";
+    typeof theme.itemGap === "number" &&
+    (theme.nameFontSize === undefined || typeof theme.nameFontSize === "number") &&
+    (theme.headingFontSize === undefined || typeof theme.headingFontSize === "number") &&
+    (theme.dateFormat === undefined || ["MMM YYYY", "MM/YYYY", "YYYY"].includes(String(theme.dateFormat)));
 
   const hasValidPage =
     (page.size === "A4" || page.size === "LETTER") &&
@@ -59,7 +62,9 @@ export const isResumeDocument = (value: unknown): value is ResumeDocument => {
     isStringArray(layout.sectionOrder) &&
     Array.isArray(layout.columns) &&
     layout.columns.length === 2 &&
-    layout.columns.every(isStringArray);
+    layout.columns.every(isStringArray) &&
+    (layout.mode === undefined || layout.mode === "one" || layout.mode === "two") &&
+    (layout.columnRatio === undefined || typeof layout.columnRatio === "number");
 
   const hasValidSections =
     REQUIRED_SECTION_KEYS.every((sectionKey) => sectionKey in resumeInformation) &&

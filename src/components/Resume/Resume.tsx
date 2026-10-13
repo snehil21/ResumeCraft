@@ -19,6 +19,7 @@ import {
 import styles from "./Resume.module.css";
 import { ResumeColumns, ResumeDocument } from "../../types";
 import { SECTIONS } from "../../constants";
+import { formatResumeDate } from "../../utils/formatResumeDate";
 
 interface ResumeProps {
   document: ResumeDocument;
@@ -48,12 +49,8 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
       other: information[SECTIONS.other],
     };
 
-    const getFormattedDate = (value: string): string => {
-      if (!value) return "";
-      const date = new Date(value);
-
-      return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
-    };
+    const getFormattedDate = (value: string): string =>
+      formatResumeDate(value, theme.dateFormat);
 
     const sectionDiv: ColumnInfo = {
       [SECTIONS.workExp]: (
@@ -349,7 +346,15 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
       container.style.setProperty("--resume-line-height", `${theme.lineHeight}`);
       container.style.setProperty("--resume-text-color", theme.textColor);
       container.style.setProperty("--resume-page-margin", `${page.margin}px`);
-    }, [page.margin, theme]);
+      container.style.setProperty("--resume-name-size", `${theme.nameFontSize}px`);
+      container.style.setProperty("--resume-heading-size", `${theme.headingFontSize}px`);
+      container.style.setProperty("--resume-section-gap", `${theme.sectionGap}px`);
+      container.style.setProperty("--resume-item-gap", `${theme.itemGap}px`);
+      container.style.setProperty("--resume-page-width", page.size === "A4" ? "210mm" : "8.5in");
+      container.style.setProperty("--resume-page-height", page.size === "A4" ? "297mm" : "11in");
+      container.style.setProperty("--resume-left-column", `${layout.columnRatio}`);
+      container.style.setProperty("--resume-right-column", `${100 - layout.columnRatio}`);
+    }, [layout.columnRatio, page, theme]);
 
     // Check if resume has any user data
     const hasUserData = (basicInfo: any) => {
@@ -416,14 +421,14 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
             </div>
           </div>
 
-          <div className={styles.main}>
-            <div className={styles.col1}>
-              {columns[0].map(renderSection)}
+          {layout.mode === "one" ? (
+            <div className={`${styles.main} ${styles.oneColumn}`}>{layout.sectionOrder.map(renderSection)}</div>
+          ) : (
+            <div className={styles.main}>
+              <div className={styles.col1}>{columns[0].map(renderSection)}</div>
+              <div className={styles.col2}>{columns[1].map(renderSection)}</div>
             </div>
-            <div className={styles.col2}>
-              {columns[1].map(renderSection)}
-            </div>
-          </div>
+          )}
         </div>
       </div>
     );

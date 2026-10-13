@@ -8,10 +8,11 @@ import {
 import Editor from "../Editor/Editor";
 import Resume from "../Resume/Resume";
 import ResumeVertical from "../Resume/ResumeVertical";
+import DesignControls from "../DesignControls/DesignControls";
 import styles from "./Body.module.css";
 import { useResumeStore } from "../../store";
-import { COLORS, SECTION_LABELS } from "../../constants";
-import { ResumeDocument, Section, TemplateId } from "../../types";
+import { SECTION_LABELS } from "../../constants";
+import { ResumeDocument, Section } from "../../types";
 import {
   isResumeDocument, isResumeDocumentEmpty, readPersistedResumeDocument,
 } from "../../utils/resumeDocument";
@@ -47,11 +48,11 @@ const Body: FC = () => {
   const handlePrint = useReactToPrint({ documentTitle: "Resume" });
 
   const {
-    document, pastDocuments, futureDocuments, setAccentColor, setTemplate,
-    setSectionColumns, startBlankResume, loadSampleResume, resetResume,
+    document, pastDocuments, futureDocuments, setSectionColumns,
+    startBlankResume, loadSampleResume, resetResume,
     importResumeDocument, ensureDocumentSaved, undo, redo,
   } = useResumeStore();
-  const { template, theme } = document;
+  const { template } = document;
 
   useEffect(() => { ensureDocumentSaved(); }, [ensureDocumentSaved]);
 
@@ -189,20 +190,7 @@ const Body: FC = () => {
 
           {mode === "design" ? <div className={styles.modePanel}>
             <div className={styles.panelIntro}><p>Design mode</p><h2>Choose a clear presentation.</h2><span>These controls change appearance without touching your content.</span></div>
-            <section className={styles.controlCard}>
-              <div><h3>Resume layout</h3><p>Choose the structure that best fits your content.</p></div>
-              <div className={styles.templateChoices}>
-                <button type="button" className={template === "classic" ? styles.selectedChoice : ""} onClick={() => setTemplate("classic" as TemplateId)}><Layout /><span><strong>Classic split</strong><small>Two-column and compact</small></span></button>
-                <button type="button" className={template === "vertical" ? styles.selectedChoice : ""} onClick={() => setTemplate("vertical" as TemplateId)}><Layout /><span><strong>Clean vertical</strong><small>Single-column and direct</small></span></button>
-              </div>
-            </section>
-            <section className={styles.controlCard}>
-              <div><h3>Accent color</h3><p>Use one restrained color for headings and links.</p></div>
-              <div className={styles.colors} role="group" aria-label="Accent color">
-                {COLORS.map((color) => <button key={color} type="button" style={{ backgroundColor: color }} className={theme.accentColor === color ? styles.activeColor : ""} onClick={() => setAccentColor(color)} aria-label={`Use accent color ${color}`} aria-pressed={theme.accentColor === color} />)}
-              </div>
-            </section>
-            <p className={styles.nextControlsNote}>Typography, spacing, page size, and column controls arrive in the dedicated design-controls milestone.</p>
+            <DesignControls />
           </div> : null}
 
           {mode === "review" ? <div className={styles.modePanel}>

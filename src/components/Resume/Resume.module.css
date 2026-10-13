@@ -1,17 +1,23 @@
 .container {
   --color: #239ce2;
   flex: 1;
-  max-width: 850px;
-  min-height: 900px;
+  width: var(--resume-page-width, 210mm);
+  max-width: 100%;
+  min-height: var(--resume-page-height, 297mm);
   max-height: calc(100vh - 200px);
   box-shadow: 1px 1px 3px 2px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  gap: 30px;
-  padding: 30px;
+  gap: var(--resume-section-gap, 16px);
+  padding: var(--resume-page-margin, 24px);
   position: relative;
   margin: 0 auto;
   overflow-y: auto;
+  background: #fff;
+  color: var(--resume-text-color, #1f2937);
+  font-family: var(--resume-font, Inter, Arial, sans-serif);
+  font-size: var(--resume-font-size, 14px);
+  line-height: var(--resume-line-height, 1.4);
 }
 
 .placeholderMessage {
@@ -33,7 +39,7 @@
 }
 
 .header .heading {
-  font-size: 2.7rem;
+  font-size: var(--resume-name-size, 38px);
   font-weight: 500;
   text-align: center;
   text-transform: capitalize;
@@ -44,7 +50,7 @@
 .header .subHeading {
   color: var(--color);
   font-weight: 500;
-  font-size: 1.1rem;
+  font-size: calc(var(--resume-font-size, 14px) * 1.15);
   margin-top: 0px;
   text-align: center;
 }
@@ -59,7 +65,7 @@
 }
 
 .header .link {
-  font-size: 0.875rem;
+  font-size: var(--resume-font-size, 14px);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -74,41 +80,43 @@
 
 .main {
   display: flex;
-  gap: 30px;
+  gap: var(--resume-section-gap, 16px);
 }
 
+.oneColumn { display: grid; grid-template-columns: 1fr; }
+
 .col1 {
-  flex: 1.3;
+  flex: var(--resume-left-column, 55);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--resume-section-gap, 16px);
 }
 .col2 {
-  flex: 1;
+  flex: var(--resume-right-column, 45);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--resume-section-gap, 16px);
 }
 
 .section .sectionTitle {
-  font-size: 1.4rem;
+  font-size: var(--resume-heading-size, 20px);
   font-weight: bold;
   width: 100%;
-  border-bottom: 2px solid #000;
+  border-bottom: 2px solid currentColor;
 }
 
 .section .content {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--resume-item-gap, 12px);
   padding: 10px 0;
 }
 .section .content .item {
   border-bottom: 1px dotted lightgray;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-bottom: 10px;
+  gap: calc(var(--resume-item-gap, 12px) * .34);
+  padding-bottom: var(--resume-item-gap, 12px);
 }
 .section .content .item:last-child {
   border-bottom: none;
@@ -116,8 +124,8 @@
 
 .content .title {
   font-weight: 500;
-  font-size: 1rem;
-  line-height: 1.3rem;
+  font-size: calc(var(--resume-font-size, 14px) * 1.08);
+  line-height: inherit;
   margin-top: 0px;
   margin-bottom: 0px;
 }
@@ -125,19 +133,19 @@
 .content .subTitle {
   font-weight: bold;
   color: var(--color);
-  font-size: 1rem;
+  font-size: var(--resume-font-size, 14px);
   margin-top: 0px;
   margin-bottom: 0px;
 }
 
 .content .overview {
-  font-size: 0.875rem;
+  font-size: var(--resume-font-size, 14px);
 }
 
 .content .link {
   display: flex;
   gap: 5px;
-  font-size: 0.75rem;
+  font-size: calc(var(--resume-font-size, 14px) * .86);
   cursor: pointer;
   color: var(--color);
 }
@@ -151,7 +159,7 @@
   display: flex;
   gap: 5px;
   align-items: center;
-  font-size: 0.875rem;
+  font-size: calc(var(--resume-font-size, 14px) * .9);
   margin-top: 0px;
   margin-bottom: 0px;
 }
@@ -164,7 +172,7 @@
 .content .points,
 .numbered {
   padding-left: 18px;
-  font-size: 0.875rem;
+  font-size: var(--resume-font-size, 14px);
   margin-top: 0px;
   margin-bottom: 0px;
 }
