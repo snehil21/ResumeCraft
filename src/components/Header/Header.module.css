@@ -108,11 +108,14 @@
   border: 1px solid #d8cfc2;
   background: rgba(255, 253, 249, 0.8);
   color: #5f5852;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
 }
 
-.secondaryAction:disabled {
-  cursor: not-allowed;
-  opacity: 0.78;
+.secondaryAction:hover {
+  border-color: #b95a2f;
+  background: #fffaf4;
+  transform: translateY(-2px);
 }
 
 .secondaryAction span {
@@ -130,12 +133,6 @@
 .secondaryAction:focus-visible {
   outline: 3px solid rgba(221, 109, 44, 0.42);
   outline-offset: 4px;
-}
-
-.uploadStatus {
-  margin: 10px 0 0;
-  color: #827a73;
-  font-size: 0.78rem;
 }
 
 .assurances {

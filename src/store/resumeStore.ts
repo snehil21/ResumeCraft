@@ -145,6 +145,44 @@ const initializeResumeInformation = (): ResumeInformation => {
   };
 };
 
+const createBlankResumeInformation = (): ResumeInformation => ({
+  [SECTIONS.basicInfo]: {
+    id: SECTIONS.basicInfo,
+    sectionTitle: SECTION_LABELS.basicInfo,
+    detail: {},
+  },
+  [SECTIONS.workExp]: {
+    id: SECTIONS.workExp,
+    sectionTitle: SECTION_LABELS.workExp,
+    details: [{}],
+  },
+  [SECTIONS.project]: {
+    id: SECTIONS.project,
+    sectionTitle: SECTION_LABELS.project,
+    details: [{}],
+  },
+  [SECTIONS.education]: {
+    id: SECTIONS.education,
+    sectionTitle: SECTION_LABELS.education,
+    details: [{}],
+  },
+  [SECTIONS.achievement]: {
+    id: SECTIONS.achievement,
+    sectionTitle: SECTION_LABELS.achievement,
+    points: [],
+  },
+  [SECTIONS.summary]: {
+    id: SECTIONS.summary,
+    sectionTitle: SECTION_LABELS.summary,
+    detail: "",
+  },
+  [SECTIONS.other]: {
+    id: SECTIONS.other,
+    sectionTitle: SECTION_LABELS.other,
+    detail: "",
+  },
+});
+
 interface ResumeStore {
   // State
   resumeInformation: ResumeInformation;
@@ -168,6 +206,8 @@ interface ResumeStore {
   addDetail: (sectionKey: string) => void;
   deleteDetail: (sectionKey: string, index: number) => void;
   setActiveTemplate: (template: "classic" | "vertical") => void;
+  startBlankResume: () => void;
+  loadSampleResume: () => void;
 }
 
 export const useResumeStore = create<ResumeStore>((set) => ({
@@ -208,6 +248,22 @@ export const useResumeStore = create<ResumeStore>((set) => ({
     })),
 
   setActiveTemplate: (template) => set({ activeTemplate: template }),
+
+  startBlankResume: () =>
+    set({
+      resumeInformation: createBlankResumeInformation(),
+      activeSectionKey: SECTIONS.basicInfo,
+      activeDetailIndex: 0,
+      currentFormValues: {},
+    }),
+
+  loadSampleResume: () =>
+    set({
+      resumeInformation: initializeResumeInformation(),
+      activeSectionKey: SECTIONS.basicInfo,
+      activeDetailIndex: 0,
+      currentFormValues: {},
+    }),
 
   addDetail: (sectionKey) =>
     set((state) => {

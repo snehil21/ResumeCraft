@@ -55,7 +55,7 @@ const Navbar: FC = () => {
             </a>
           </div>
 
-          <Link className={styles.primaryAction} to="/resumebuilder">
+          <Link className={styles.primaryAction} to="/start">
             Build my resume
           </Link>
         </div>
@@ -93,7 +93,7 @@ const Navbar: FC = () => {
           </a>
           <Link
             className={styles.mobilePrimaryAction}
-            to="/resumebuilder"
+            to="/start"
             tabIndex={isMenuOpen ? 0 : -1}
           >
             Build my resume

@@ -31,7 +31,7 @@ const Header: FC = () => {
             <button
               className={styles.primaryAction}
               type="button"
-              onClick={() => navigate("/resumebuilder")}
+              onClick={() => navigate("/start?mode=create")}
             >
               Create new resume
               <ArrowRight aria-hidden="true" />
@@ -40,18 +40,13 @@ const Header: FC = () => {
             <button
               className={styles.secondaryAction}
               type="button"
-              disabled
-              aria-describedby="upload-status"
+              onClick={() => navigate("/start?mode=upload")}
             >
               <UploadCloud aria-hidden="true" />
               Upload existing resume
-              <span>Next</span>
+              <span>Soon</span>
             </button>
           </div>
-
-          <p className={styles.uploadStatus} id="upload-status">
-            PDF and DOCX import is the next product milestone.
-          </p>
 
           <ul className={styles.assurances} aria-label="Product assurances">
             <li>

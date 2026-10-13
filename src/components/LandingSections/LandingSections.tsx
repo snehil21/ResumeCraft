@@ -208,7 +208,7 @@ const LandingSections: FC = () => {
           <p className={styles.kicker}>Your next draft can start here</p>
           <h2>Build the resume. Keep the control.</h2>
           <p>Start with the information you already know. Refine the rest as you go.</p>
-          <Link to="/resumebuilder">
+          <Link to="/start?mode=create">
             Create my resume <ArrowRight aria-hidden="true" />
           </Link>
         </div>

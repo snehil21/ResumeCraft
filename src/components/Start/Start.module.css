@@ -1,0 +1,292 @@
+.page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(216, 107, 46, 0.1), transparent 30%),
+    #f8f4ed;
+}
+
+.main {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 66px 0 78px;
+}
+
+.intro {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.backLink {
+  width: fit-content;
+  margin: 0 auto 37px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #5d554f;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.backLink svg {
+  width: 17px;
+  height: 17px;
+}
+
+.eyebrow {
+  margin: 0 0 16px;
+  color: #a64923;
+  font-size: 0.77rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.intro h1 {
+  margin: 0;
+  color: #211d1a;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.8rem, 5.5vw, 5rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.description {
+  max-width: 650px;
+  margin: 23px auto 0;
+  color: #655d56;
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+.privacyNote {
+  width: fit-content;
+  margin: 20px auto 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6f442f;
+  font-size: 0.79rem;
+  font-weight: 750;
+}
+
+.privacyNote svg {
+  width: 15px;
+  height: 15px;
+}
+
+.options {
+  margin-top: 55px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.optionCard {
+  min-width: 0;
+  min-height: 410px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd4ca;
+  border-radius: 17px;
+  background: rgba(255, 253, 249, 0.9);
+  box-shadow: 0 12px 30px rgba(70, 51, 38, 0.06);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.optionCard:hover {
+  border-color: #c9b3a4;
+  box-shadow: 0 18px 38px rgba(70, 51, 38, 0.1);
+  transform: translateY(-3px);
+}
+
+.selectedCard {
+  border-color: #bf5a2b;
+  box-shadow: 0 0 0 3px rgba(191, 90, 43, 0.1), 0 18px 38px rgba(70, 51, 38, 0.1);
+}
+
+.optionIcon {
+  width: 52px;
+  height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: #f0e4d8;
+  color: #a94a22;
+}
+
+.optionIcon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.optionCard > div:not(.cardTopline) {
+  margin-top: 40px;
+}
+
+.optionLabel {
+  margin: 0 0 8px;
+  color: #a64923;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.optionCard h2 {
+  margin: 0;
+  color: #2c2723;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.5rem;
+  line-height: 1.18;
+}
+
+.optionCard > div > p:last-child {
+  margin: 14px 0 0;
+  color: #6b635d;
+  font-size: 0.9rem;
+  line-height: 1.62;
+}
+
+.optionCard > button {
+  width: 100%;
+  min-height: 48px;
+  margin-top: auto;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid #211d1a;
+  border-radius: 10px;
+  background: #211d1a;
+  color: #fffdf9;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.optionCard > button:hover:not(:disabled) {
+  border-color: #b75024;
+  background: #b75024;
+}
+
+.optionCard button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.cardTopline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.soonBadge {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #eee6dc;
+  color: #8b4a2c;
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.optionCard > .disabledButton {
+  border-color: #d8cfc5;
+  background: #eee9e2;
+  color: #8b827a;
+  cursor: not-allowed;
+}
+
+.uploadExplanation {
+  margin: 9px 0 0;
+  color: #8b827a;
+  font-size: 0.69rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.modeLinks {
+  margin-top: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #a59a90;
+}
+
+.modeLinks button {
+  padding: 4px;
+  border: 0;
+  background: transparent;
+  color: #766d66;
+  font: inherit;
+  font-size: 0.75rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.backLink:focus-visible,
+.optionCard button:focus-visible,
+.modeLinks button:focus-visible {
+  outline: 3px solid rgba(221, 109, 44, 0.4);
+  outline-offset: 4px;
+}
+
+@media (max-width: 900px) {
+  .main {
+    width: min(100% - 40px, 680px);
+  }
+
+  .options {
+    grid-template-columns: 1fr;
+  }
+
+  .optionCard {
+    min-height: 330px;
+  }
+}
+
+@media (max-width: 520px) {
+  .main {
+    width: calc(100% - 32px);
+    padding: 46px 0 60px;
+  }
+
+  .intro h1 {
+    font-size: 2.75rem;
+  }
+
+  .description {
+    font-size: 0.95rem;
+  }
+
+  .privacyNote {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .options {
+    margin-top: 40px;
+  }
+
+  .optionCard {
+    min-height: 350px;
+    padding: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .optionCard {
+    transition: none;
+  }
+}
