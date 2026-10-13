@@ -47,13 +47,56 @@ const Editor: FC<EditorProps> = ({ sections }) => {
     setCurrentFormValues(formValues);
   }, [activeSectionKey, activeDetailIndex, activeSection, setCurrentFormValues]);
 
-  // Wrapper setter function that works like React's setState
-  const setValues = (updater: FormValues | ((prev: FormValues) => FormValues)) => {
-    if (typeof updater === 'function') {
-      setCurrentFormValues(updater(currentFormValues));
-    } else {
-      setCurrentFormValues(updater);
+  const persistValues = (values: FormValues) => {
+    if (activeSectionKey === SECTIONS.basicInfo) {
+      updateResumeSection(activeSectionKey, {
+        detail: buildDetailForSection(activeSectionKey, values) as any,
+        sectionTitle,
+      });
+      return;
     }
+
+    if (
+      activeSectionKey === SECTIONS.workExp ||
+      activeSectionKey === SECTIONS.project ||
+      activeSectionKey === SECTIONS.education
+    ) {
+      const detail = buildDetailForSection(activeSectionKey, values);
+      const updatedDetails = [...(activeSection?.details || [])];
+      const existingId = updatedDetails[activeDetailIndex]?.id;
+      updatedDetails[activeDetailIndex] = {
+        ...(detail as object),
+        id: existingId,
+      } as any;
+
+      updateResumeSection(activeSectionKey, {
+        details: updatedDetails,
+        sectionTitle,
+      });
+      return;
+    }
+
+    if (activeSectionKey === SECTIONS.achievement) {
+      updateResumeSection(activeSectionKey, {
+        points: values.points,
+        sectionTitle,
+      });
+      return;
+    }
+
+    updateResumeSection(activeSectionKey, {
+      detail: buildDetailForSection(activeSectionKey, values) as any,
+      sectionTitle,
+    });
+  };
+
+  // Every field edit is written to the document immediately, so changing tabs
+  // or modes cannot discard unsaved form state.
+  const setValues = (updater: FormValues | ((prev: FormValues) => FormValues)) => {
+    const nextValues =
+      typeof updater === "function" ? updater(currentFormValues) : updater;
+    setCurrentFormValues(nextValues);
+    persistValues(nextValues);
   };
 
   const handleGenerateBody = () => {
@@ -71,7 +114,7 @@ const Editor: FC<EditorProps> = ({ sections }) => {
             values={currentFormValues}
             setValues={setValues}
             handlePointUpdate={(value, index) => {
-              const points = currentFormValues.points || [];
+              const points = [...(currentFormValues.points || [])];
               points[index] = value;
               setValues({ ...currentFormValues, points });
             }}
@@ -83,7 +126,7 @@ const Editor: FC<EditorProps> = ({ sections }) => {
             values={currentFormValues}
             setValues={setValues}
             handlePointUpdate={(value, index) => {
-              const points = currentFormValues.points || [];
+              const points = [...(currentFormValues.points || [])];
               points[index] = value;
               setValues({ ...currentFormValues, points });
             }}
@@ -101,7 +144,7 @@ const Editor: FC<EditorProps> = ({ sections }) => {
           <Achievements
             values={currentFormValues}
             handlePointUpdate={(value, index) => {
-              const points = currentFormValues.points || [];
+              const points = [...(currentFormValues.points || [])];
               points[index] = value;
               setValues({ ...currentFormValues, points });
             }}
@@ -120,45 +163,6 @@ const Editor: FC<EditorProps> = ({ sections }) => {
         );
       default:
         return null;
-    }
-  };
-
-  const handleSubmission = () => {
-    if (activeSectionKey === SECTIONS.basicInfo) {
-      const detail = buildDetailForSection(activeSectionKey, currentFormValues);
-      updateResumeSection(activeSectionKey, {
-        detail: detail as any,
-        sectionTitle,
-      });
-    } else if (
-      activeSectionKey === SECTIONS.workExp ||
-      activeSectionKey === SECTIONS.project ||
-      activeSectionKey === SECTIONS.education
-    ) {
-      const detail = buildDetailForSection(activeSectionKey, currentFormValues);
-      const updatedDetails = [...(activeSection?.details || [])];
-      const existingId = updatedDetails[activeDetailIndex]?.id;
-      updatedDetails[activeDetailIndex] = {
-        ...(detail as object),
-        id: existingId,
-      } as any;
-
-      updateResumeSection(activeSectionKey, {
-        details: updatedDetails,
-        sectionTitle,
-      });
-    } else if (activeSectionKey === SECTIONS.achievement) {
-      updateResumeSection(activeSectionKey, {
-        points: currentFormValues.points,
-        sectionTitle,
-      });
-    } else {
-      // Summary or Other
-      const detail = buildDetailForSection(activeSectionKey, currentFormValues);
-      updateResumeSection(activeSectionKey, {
-        detail: detail as any,
-        sectionTitle,
-      });
     }
   };
 
@@ -235,7 +239,7 @@ const Editor: FC<EditorProps> = ({ sections }) => {
 
         {handleGenerateBody()}
 
-        <button onClick={handleSubmission}>Save</button>
+        <p className={styles.autosaveHint}>Changes update the preview and save locally as you type.</p>
       </div>
     </div>
   );

@@ -41,8 +41,8 @@
 }
 
 .header .active {
-  border-bottom: 2px solid #239ce2;
-  color: #239ce2;
+  border-bottom: 2px solid #b75024;
+  color: #a64923;
 }
 
 .body {
@@ -80,7 +80,7 @@
 }
 
 .chips .new {
-  color: #239ce2;
+  color: #a64923;
   font-weight: bold;
   letter-spacing: 1px;
   cursor: pointer;
@@ -109,14 +109,14 @@
 }
 
 .chips .active {
-  background-color: #239ce2;
+  background-color: #b75024;
 }
 
 .body button {
   width: fit-content;
   padding: 8px 16px;
   border-radius: 5px;
-  background-color: #239ce2;
+  background-color: #b75024;
   color: #fff;
   outline: none;
   border: none;
@@ -132,4 +132,11 @@
 
 .body button:active {
   transform: translateY(2px);
+}
+
+.autosaveHint {
+  margin: 2px 0 0;
+  color: #746b63;
+  font-size: 0.76rem;
+  line-height: 1.45;
 }

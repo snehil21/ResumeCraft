@@ -235,7 +235,7 @@ const createResumeDocument = (kind: "blank" | "sample"): ResumeDocument => {
         : createSampleResumeInformation(),
     template: "classic",
     theme: {
-      accentColor: "#239ce2",
+      accentColor: "#b75024",
       fontFamily: "Inter, Arial, sans-serif",
       baseFontSize: 14,
       lineHeight: 1.4,
@@ -270,6 +270,8 @@ const hasDetailContent = (detail: object | undefined): boolean =>
 
 interface ResumeStore {
   document: ResumeDocument;
+  pastDocuments: ResumeDocument[];
+  futureDocuments: ResumeDocument[];
   activeSectionKey: SectionKey;
   activeDetailIndex: number;
   currentFormValues: FormValues;
@@ -289,17 +291,31 @@ interface ResumeStore {
   resetResume: () => void;
   importResumeDocument: (document: ResumeDocument) => void;
   ensureDocumentSaved: () => void;
+  undo: () => void;
+  redo: () => void;
 }
+
+const HISTORY_LIMIT = 50;
+
+const withDocumentHistory = (
+  state: ResumeStore,
+  document: ResumeDocument
+): Pick<ResumeStore, "document" | "pastDocuments" | "futureDocuments"> => ({
+  document,
+  pastDocuments: [...state.pastDocuments, state.document].slice(-HISTORY_LIMIT),
+  futureDocuments: [],
+});
 
 export const useResumeStore = create<ResumeStore>()(persist((set) => ({
   document: createResumeDocument("blank"),
+  pastDocuments: [],
+  futureDocuments: [],
   activeSectionKey: SECTIONS.basicInfo,
   activeDetailIndex: 0,
   currentFormValues: {},
 
   updateResumeSection: (sectionKey, sectionUpdate) =>
-    set((state) => ({
-      document: touchDocument(state.document, {
+    set((state) => withDocumentHistory(state, touchDocument(state.document, {
         resumeInformation: {
           ...state.document.resumeInformation,
           [sectionKey]: {
@@ -307,35 +323,30 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
             ...sectionUpdate,
           },
         },
-      }),
-    })),
+      }))),
 
   setAccentColor: (color) =>
-    set((state) => ({
-      document: touchDocument(state.document, {
+    set((state) => withDocumentHistory(state, touchDocument(state.document, {
         theme: { ...state.document.theme, accentColor: color },
-      }),
-    })),
+      }))),
 
   setTemplate: (template) =>
-    set((state) => ({
-      document: touchDocument(state.document, { template }),
-    })),
+    set((state) => withDocumentHistory(
+      state,
+      touchDocument(state.document, { template })
+    )),
 
   setSectionColumns: (columns) =>
-    set((state) => ({
-      document: touchDocument(state.document, {
+    set((state) => withDocumentHistory(state, touchDocument(state.document, {
         layout: {
           ...state.document.layout,
           columns,
           sectionOrder: columns.flat(),
         },
-      }),
-    })),
+      }))),
 
   setSectionVisibility: (sectionKey, visible) =>
-    set((state) => ({
-      document: touchDocument(state.document, {
+    set((state) => withDocumentHistory(state, touchDocument(state.document, {
         resumeInformation: {
           ...state.document.resumeInformation,
           [sectionKey]: {
@@ -343,8 +354,7 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
             visible,
           },
         },
-      }),
-    })),
+      }))),
 
   setActiveSectionKey: (key) =>
     set({ activeSectionKey: key, activeDetailIndex: 0 }),
@@ -356,32 +366,32 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
     })),
 
   startBlankResume: () =>
-    set({
-      document: createResumeDocument("blank"),
+    set((state) => ({
+      ...withDocumentHistory(state, createResumeDocument("blank")),
       activeSectionKey: SECTIONS.basicInfo,
       activeDetailIndex: 0,
       currentFormValues: {},
-    }),
+    })),
 
   loadSampleResume: () =>
-    set({
-      document: createResumeDocument("sample"),
+    set((state) => ({
+      ...withDocumentHistory(state, createResumeDocument("sample")),
       activeSectionKey: SECTIONS.basicInfo,
       activeDetailIndex: 0,
       currentFormValues: {},
-    }),
+    })),
 
   resetResume: () =>
     set((state) => {
       const blankDocument = createResumeDocument("blank");
 
       return {
-        document: {
+        ...withDocumentHistory(state, {
           ...blankDocument,
           id: state.document.id,
           title: state.document.title,
           createdAt: state.document.createdAt,
-        },
+        }),
         activeSectionKey: SECTIONS.basicInfo,
         activeDetailIndex: 0,
         currentFormValues: {},
@@ -389,18 +399,42 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
     }),
 
   importResumeDocument: (document) =>
-    set({
-      document: {
+    set((state) => ({
+      ...withDocumentHistory(state, {
         ...document,
         updatedAt: new Date().toISOString(),
-      },
+      }),
       activeSectionKey: SECTIONS.basicInfo,
       activeDetailIndex: 0,
       currentFormValues: {},
-    }),
+    })),
 
   ensureDocumentSaved: () =>
     set((state) => ({ document: state.document })),
+
+  undo: () =>
+    set((state) => {
+      const previousDocument = state.pastDocuments[state.pastDocuments.length - 1];
+      if (!previousDocument) return state;
+
+      return {
+        document: previousDocument,
+        pastDocuments: state.pastDocuments.slice(0, -1),
+        futureDocuments: [state.document, ...state.futureDocuments].slice(0, HISTORY_LIMIT),
+      };
+    }),
+
+  redo: () =>
+    set((state) => {
+      const nextDocument = state.futureDocuments[0];
+      if (!nextDocument) return state;
+
+      return {
+        document: nextDocument,
+        pastDocuments: [...state.pastDocuments, state.document].slice(-HISTORY_LIMIT),
+        futureDocuments: state.futureDocuments.slice(1),
+      };
+    }),
 
   addDetail: (sectionKey) =>
     set((state) => {
@@ -416,12 +450,12 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
       ] as Section["details"];
 
       return {
-        document: touchDocument(state.document, {
+        ...withDocumentHistory(state, touchDocument(state.document, {
           resumeInformation: {
             ...state.document.resumeInformation,
             [sectionKey]: { ...section, details },
           },
-        }),
+        })),
         activeDetailIndex: section.details.length,
       };
     }),
@@ -437,12 +471,12 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
         : ([{ id: createId(sectionKey) }] as Section["details"]);
 
       return {
-        document: touchDocument(state.document, {
+        ...withDocumentHistory(state, touchDocument(state.document, {
           resumeInformation: {
             ...state.document.resumeInformation,
             [sectionKey]: { ...section, details: nextDetails },
           },
-        }),
+        })),
         activeDetailIndex: Math.max(
           0,
           Math.min(state.activeDetailIndex, nextDetails.length - 1)
