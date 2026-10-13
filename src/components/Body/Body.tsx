@@ -8,7 +8,8 @@ import ResumeVertical from "../Resume/ResumeVertical";
 
 import styles from "./Body.module.css";
 import { useResumeStore } from "../../store";
-import { COLORS, SECTIONS, SECTION_LABELS } from "../../constants";
+import { COLORS, SECTION_LABELS } from "../../constants";
+import { TemplateId } from "../../types";
 
 const Body: FC = () => {
   const resumeRef = useRef<HTMLDivElement>(null);
@@ -18,12 +19,12 @@ const Body: FC = () => {
 
   // Get state and actions from Zustand store
   const {
-    activeColor,
-    setActiveColor,
-    resumeInformation,
-    activeTemplate,
-    setActiveTemplate,
+    document,
+    setAccentColor,
+    setTemplate,
+    setSectionColumns,
   } = useResumeStore();
+  const { template, theme } = document;
 
   // Create sections object that maps keys to labels
   const sections = {
@@ -50,9 +51,9 @@ const Body: FC = () => {
                   key={item}
                   style={{ backgroundColor: item }}
                   className={`${styles.color} ${
-                    activeColor === item ? styles.active : ""
+                    theme.accentColor === item ? styles.active : ""
                   }`}
-                  onClick={() => setActiveColor(item)}
+                  onClick={() => setAccentColor(item)}
                 />
               ))}
             </div>
@@ -77,9 +78,9 @@ const Body: FC = () => {
             <div className={styles.templates}>
               <label>Choose Your Layout:</label>
               <select
-                value={activeTemplate}
+                value={template}
                 onChange={(e) =>
-                  setActiveTemplate(e.target.value as "classic" | "vertical")
+                  setTemplate(e.target.value as TemplateId)
                 }
                 className={styles.templateSelect}
               >
@@ -88,19 +89,16 @@ const Body: FC = () => {
               </select>
             </div>
           </div>
-          {activeTemplate === "classic" ? (
+          {template === "classic" ? (
             <Resume
               ref={resumeRef}
-              sections={sections}
-              information={resumeInformation}
-              activeColor={activeColor}
+              document={document}
+              onSectionColumnsChange={setSectionColumns}
             />
           ) : (
             <ResumeVertical
               ref={resumeRef}
-              sections={sections}
-              information={resumeInformation}
-              activeColor={activeColor}
+              document={document}
             />
           )}
         </div>

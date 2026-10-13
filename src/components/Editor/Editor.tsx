@@ -22,7 +22,7 @@ interface EditorProps {
 
 const Editor: FC<EditorProps> = ({ sections }) => {
   const {
-    resumeInformation,
+    document,
     activeSectionKey,
     setActiveSectionKey,
     activeDetailIndex,
@@ -34,7 +34,7 @@ const Editor: FC<EditorProps> = ({ sections }) => {
     deleteDetail,
   } = useResumeStore();
 
-  const activeSection = resumeInformation[activeSectionKey];
+  const activeSection = document.resumeInformation[activeSectionKey];
   const sectionTitle = activeSection?.sectionTitle || sections[activeSectionKey as keyof typeof sections];
 
   useEffect(() => {
@@ -137,7 +137,11 @@ const Editor: FC<EditorProps> = ({ sections }) => {
     ) {
       const detail = buildDetailForSection(activeSectionKey, currentFormValues);
       const updatedDetails = [...(activeSection?.details || [])];
-      updatedDetails[activeDetailIndex] = detail as any;
+      const existingId = updatedDetails[activeDetailIndex]?.id;
+      updatedDetails[activeDetailIndex] = {
+        ...(detail as object),
+        id: existingId,
+      } as any;
 
       updateResumeSection(activeSectionKey, {
         details: updatedDetails,
@@ -203,7 +207,7 @@ const Editor: FC<EditorProps> = ({ sections }) => {
                   className={`${styles.chip} ${
                     activeDetailIndex === index ? styles.active : ""
                   }`}
-                  key={item.title + index}
+                  key={item.id}
                   onClick={() => setActiveDetailIndex(index)}
                 >
                   <p>

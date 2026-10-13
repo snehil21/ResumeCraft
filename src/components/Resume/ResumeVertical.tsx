@@ -1,5 +1,4 @@
 import React, {
-  FC,
   forwardRef,
   useEffect,
   useRef,
@@ -7,7 +6,6 @@ import React, {
   ReactNode,
 } from "react";
 import {
-  AtSign,
   Calendar,
   GitHub,
   Linkedin,
@@ -18,13 +16,11 @@ import {
 } from "react-feather";
 
 import styles from "./ResumeVertical.module.css";
-import { ResumeInformation } from "../../types";
+import { ResumeDocument } from "../../types";
 import { SECTIONS } from "../../constants";
 
 interface ResumeVerticalProps {
-  sections: { [key: string]: string };
-  information: ResumeInformation;
-  activeColor: string;
+  document: ResumeDocument;
 }
 
 interface SectionInfo {
@@ -32,8 +28,9 @@ interface SectionInfo {
 }
 
 const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
-  ({ information, sections, activeColor }, ref: Ref<HTMLDivElement>) => {
+  ({ document }, ref: Ref<HTMLDivElement>) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const { resumeInformation: information, layout, theme, page } = document;
 
     const info = {
       workExp: information[SECTIONS.workExp],
@@ -56,13 +53,13 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
         <div
           key={"workexp"}
           className={`${styles.section} ${
-            info.workExp?.sectionTitle ? "" : styles.hidden
+            info.workExp?.visible && info.workExp.sectionTitle ? "" : styles.hidden
           }`}
         >
           <h2 className={styles.sectionTitle}>{info.workExp?.sectionTitle}</h2>
           <div className={styles.content}>
             {(info.workExp?.details as any)?.map((item: any) => (
-              <div className={styles.item} key={item.title}>
+              <div className={styles.item} key={item.id}>
                 <div className={styles.itemHeader}>
                   {item.title ? (
                     <p className={styles.title}>{item.title}</p>
@@ -106,13 +103,13 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
         <div
           key={"project"}
           className={`${styles.section} ${
-            info.project?.sectionTitle ? "" : styles.hidden
+            info.project?.visible && info.project.sectionTitle ? "" : styles.hidden
           }`}
         >
           <h2 className={styles.sectionTitle}>{info.project?.sectionTitle}</h2>
           <div className={styles.content}>
             {(info.project?.details as any)?.map((item: any) => (
-              <div className={styles.item} key={item.title}>
+              <div className={styles.item} key={item.id}>
                 <div className={styles.itemHeader}>
                   {item.title ? (
                     <p className={styles.title}>{item.title}</p>
@@ -154,13 +151,13 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
         <div
           key={"education"}
           className={`${styles.section} ${
-            info.education?.sectionTitle ? "" : styles.hidden
+            info.education?.visible && info.education.sectionTitle ? "" : styles.hidden
           }`}
         >
           <h2 className={styles.sectionTitle}>{info.education?.sectionTitle}</h2>
           <div className={styles.content}>
             {(info.education?.details as any)?.map((item: any) => (
-              <div className={styles.item} key={item.college}>
+              <div className={styles.item} key={item.id}>
                 <div className={styles.itemHeader}>
                   {item.title ? (
                     <p className={styles.title}>{item.title}</p>
@@ -188,7 +185,7 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
         <div
           key={"achievement"}
           className={`${styles.section} ${
-            info.achievement?.sectionTitle ? "" : styles.hidden
+            info.achievement?.visible && info.achievement.sectionTitle ? "" : styles.hidden
           }`}
         >
           <h2 className={styles.sectionTitle}>
@@ -213,7 +210,7 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
         <div
           key={"summary"}
           className={`${styles.section} ${
-            (info.summary?.detail as string) ? "" : styles.hidden
+            info.summary?.visible && (info.summary.detail as string) ? "" : styles.hidden
           }`}
         >
           <h2 className={styles.sectionTitle}>{info.summary?.sectionTitle}</h2>
@@ -224,7 +221,7 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
         <div
           key={"other"}
           className={`${styles.section} ${
-            (info.other?.detail as string) ? "" : styles.hidden
+            info.other?.visible && (info.other.detail as string) ? "" : styles.hidden
           }`}
         >
           <h2 className={styles.sectionTitle}>{info.other?.sectionTitle}</h2>
@@ -235,10 +232,15 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
 
     useEffect(() => {
       const container = containerRef.current;
-      if (!activeColor || !container) return;
+      if (!container) return;
 
-      container.style.setProperty("--color", activeColor);
-    }, [activeColor]);
+      container.style.setProperty("--color", theme.accentColor);
+      container.style.setProperty("--resume-font", theme.fontFamily);
+      container.style.setProperty("--resume-font-size", `${theme.baseFontSize}px`);
+      container.style.setProperty("--resume-line-height", `${theme.lineHeight}`);
+      container.style.setProperty("--resume-text-color", theme.textColor);
+      container.style.setProperty("--resume-page-margin", `${page.margin}px`);
+    }, [page.margin, theme]);
 
     // Check if resume has any user data
     const hasUserData = (basicInfo: any) => {
@@ -247,7 +249,13 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
 
     return (
       <div ref={ref}>
-        <div ref={containerRef} className={styles.container}>
+        <div
+          ref={containerRef}
+          className={styles.container}
+          data-document-id={document.id}
+          data-schema-version={document.schemaVersion}
+          data-page-size={page.size}
+        >
           {!hasUserData(info.basicInfo) && (
             <div className={styles.placeholderMessage}>
               📝 Put Your Details in Resume Builder
@@ -294,7 +302,7 @@ const ResumeVertical = forwardRef<HTMLDivElement, ResumeVerticalProps>(
           </div>
 
           <div className={styles.main}>
-            {[SECTIONS.summary, SECTIONS.workExp, SECTIONS.education, SECTIONS.project, SECTIONS.achievement, SECTIONS.other].map(
+            {layout.sectionOrder.map(
               (section) => sectionDiv[section]
             )}
           </div>

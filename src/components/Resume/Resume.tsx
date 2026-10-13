@@ -1,5 +1,4 @@
 import React, {
-  FC,
   forwardRef,
   useEffect,
   useRef,
@@ -8,7 +7,6 @@ import React, {
   ReactNode,
 } from "react";
 import {
-  AtSign,
   Calendar,
   GitHub,
   Linkedin,
@@ -19,13 +17,12 @@ import {
 } from "react-feather";
 
 import styles from "./Resume.module.css";
-import { ResumeInformation } from "../../types";
+import { ResumeColumns, ResumeDocument } from "../../types";
 import { SECTIONS } from "../../constants";
 
 interface ResumeProps {
-  sections: { [key: string]: string };
-  information: ResumeInformation;
-  activeColor: string;
+  document: ResumeDocument;
+  onSectionColumnsChange: (columns: ResumeColumns) => void;
 }
 
 interface ColumnInfo {
@@ -33,12 +30,13 @@ interface ColumnInfo {
 }
 
 const Resume = forwardRef<HTMLDivElement, ResumeProps>(
-  ({ information, sections, activeColor }, ref: Ref<HTMLDivElement>) => {
+  ({ document, onSectionColumnsChange }, ref: Ref<HTMLDivElement>) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const [columns, setColumns] = useState<string[][]>([[], []]);
     const [source, setSource] = useState("");
     const [target, setTarget] = useState("");
+    const { resumeInformation: information, layout, theme, page } = document;
+    const columns = layout.columns;
 
     const info = {
       workExp: information[SECTIONS.workExp],
@@ -65,13 +63,13 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
           onDragOver={() => setTarget(info.workExp?.id || "")}
           onDragEnd={() => setSource(info.workExp?.id || "")}
           className={`${styles.section} ${
-            info.workExp?.sectionTitle ? "" : styles.hidden
+            info.workExp?.visible && info.workExp.sectionTitle ? "" : styles.hidden
           }`}
         >
           <div className={styles.sectionTitle}>{info.workExp?.sectionTitle}</div>
           <div className={styles.content}>
             {(info.workExp?.details as any)?.map((item: any) => (
-              <div className={styles.item} key={item.title}>
+              <div className={styles.item} key={item.id}>
                 {item.title ? (
                   <p className={styles.title}>{item.title}</p>
                 ) : (
@@ -128,13 +126,13 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
           onDragOver={() => setTarget(info.project?.id || "")}
           onDragEnd={() => setSource(info.project?.id || "")}
           className={`${styles.section} ${
-            info.project?.sectionTitle ? "" : styles.hidden
+            info.project?.visible && info.project.sectionTitle ? "" : styles.hidden
           }`}
         >
           <div className={styles.sectionTitle}>{info.project?.sectionTitle}</div>
           <div className={styles.content}>
             {(info.project?.details as any)?.map((item: any) => (
-              <div className={styles.item} key={item.title}>
+              <div className={styles.item} key={item.id}>
                 {item.title ? (
                   <p className={styles.title}>{item.title}</p>
                 ) : (
@@ -184,7 +182,7 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
           onDragOver={() => setTarget(info.education?.id || "")}
           onDragEnd={() => setSource(info.education?.id || "")}
           className={`${styles.section} ${
-            info.education?.sectionTitle ? "" : styles.hidden
+            info.education?.visible && info.education.sectionTitle ? "" : styles.hidden
           }`}
         >
           <div className={styles.sectionTitle}>
@@ -192,7 +190,7 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
           </div>
           <div className={styles.content}>
             {(info.education?.details as any)?.map((item: any) => (
-              <div className={styles.item} key={item.title}>
+              <div className={styles.item} key={item.id}>
                 {item.title ? (
                   <p className={styles.title}>{item.title}</p>
                 ) : (
@@ -223,7 +221,7 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
           onDragOver={() => setTarget(info.achievement?.id || "")}
           onDragEnd={() => setSource(info.achievement?.id || "")}
           className={`${styles.section} ${
-            info.achievement?.sectionTitle ? "" : styles.hidden
+            info.achievement?.visible && info.achievement.sectionTitle ? "" : styles.hidden
           }`}
         >
           <div className={styles.sectionTitle}>
@@ -253,7 +251,7 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
           onDragOver={() => setTarget(info.summary?.id || "")}
           onDragEnd={() => setSource(info.summary?.id || "")}
           className={`${styles.section} ${
-            info.summary?.sectionTitle ? "" : styles.hidden
+            info.summary?.visible && info.summary.sectionTitle ? "" : styles.hidden
           }`}
         >
           <div className={styles.sectionTitle}>{info.summary?.sectionTitle}</div>
@@ -269,7 +267,7 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
           onDragOver={() => setTarget(info.other?.id || "")}
           onDragEnd={() => setSource(info.other?.id || "")}
           className={`${styles.section} ${
-            info.other?.sectionTitle ? "" : styles.hidden
+            info.other?.visible && info.other.sectionTitle ? "" : styles.hidden
           }`}
         >
           <div className={styles.sectionTitle}>{info.other?.sectionTitle}</div>
@@ -304,15 +302,8 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
 
       tempColumns[targetColumnIndex][targetRowIndex] = tempSource;
 
-      setColumns(tempColumns);
+      onSectionColumnsChange(tempColumns as ResumeColumns);
     };
-
-    useEffect(() => {
-      setColumns([
-        [SECTIONS.project, SECTIONS.education, SECTIONS.summary],
-        [SECTIONS.workExp, SECTIONS.achievement, SECTIONS.other],
-      ]);
-    }, []);
 
     useEffect(() => {
       swapSourceTarget(source, target);
@@ -320,10 +311,15 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
 
     useEffect(() => {
       const container = containerRef.current;
-      if (!activeColor || !container) return;
+      if (!container) return;
 
-      container.style.setProperty("--color", activeColor);
-    }, [activeColor]);
+      container.style.setProperty("--color", theme.accentColor);
+      container.style.setProperty("--resume-font", theme.fontFamily);
+      container.style.setProperty("--resume-font-size", `${theme.baseFontSize}px`);
+      container.style.setProperty("--resume-line-height", `${theme.lineHeight}`);
+      container.style.setProperty("--resume-text-color", theme.textColor);
+      container.style.setProperty("--resume-page-margin", `${page.margin}px`);
+    }, [page.margin, theme]);
 
     // Check if resume has any user data
     const hasUserData = (basicInfo: any) => {
@@ -332,7 +328,13 @@ const Resume = forwardRef<HTMLDivElement, ResumeProps>(
 
     return (
       <div ref={ref}>
-        <div ref={containerRef} className={styles.container}>
+        <div
+          ref={containerRef}
+          className={styles.container}
+          data-document-id={document.id}
+          data-schema-version={document.schemaVersion}
+          data-page-size={page.size}
+        >
           {!hasUserData(info.basicInfo) && (
             <div className={styles.placeholderMessage}>
               📝 Update the details in above form to get your resume reday

@@ -10,6 +10,7 @@ export interface BasicDetail {
 
 // Work Experience Detail
 export interface WorkExpDetail {
+  id: string;
   certificationLink?: string;
   title?: string;
   startDate?: string;
@@ -21,6 +22,7 @@ export interface WorkExpDetail {
 
 // Project Detail
 export interface ProjectDetail {
+  id: string;
   link?: string;
   title?: string;
   overview?: string;
@@ -30,6 +32,7 @@ export interface ProjectDetail {
 
 // Education Detail
 export interface EducationDetail {
+  id: string;
   title?: string;
   college?: string;
   startDate?: string;
@@ -43,9 +46,9 @@ export interface AchievementDetail {
 
 // Form Values - Union type for all possible form fields
 export type FormValues = BasicDetail &
-  WorkExpDetail &
-  ProjectDetail &
-  EducationDetail & {
+  Omit<WorkExpDetail, "id"> &
+  Omit<ProjectDetail, "id"> &
+  Omit<EducationDetail, "id"> & {
     summary?: string;
     other?: string;
   };
@@ -64,6 +67,7 @@ export type ResumeSectionDetail =
 export interface Section {
   id: string;
   sectionTitle: string;
+  visible: boolean;
   detail?: BasicDetail | string;
   details?: WorkExpDetail[] | ProjectDetail[] | EducationDetail[];
   points?: string[];
@@ -72,4 +76,43 @@ export interface Section {
 // Complete Resume Information
 export interface ResumeInformation {
   [key: string]: Section;
+}
+
+export type TemplateId = "classic" | "vertical";
+export type PageSize = "A4" | "LETTER";
+
+export interface ResumeTheme {
+  accentColor: string;
+  fontFamily: string;
+  baseFontSize: number;
+  lineHeight: number;
+  headingScale: number;
+  textColor: string;
+  sectionGap: number;
+  itemGap: number;
+}
+
+export interface PageSettings {
+  size: PageSize;
+  margin: number;
+}
+
+export type ResumeColumns = [string[], string[]];
+
+export interface ResumeLayout {
+  sectionOrder: string[];
+  columns: ResumeColumns;
+}
+
+export interface ResumeDocument {
+  schemaVersion: 1;
+  id: string;
+  title: string;
+  resumeInformation: ResumeInformation;
+  template: TemplateId;
+  theme: ResumeTheme;
+  page: PageSettings;
+  layout: ResumeLayout;
+  createdAt: string;
+  updatedAt: string;
 }

@@ -14,8 +14,10 @@ export const extractFormValuesFromSection = (
   // If section has details array (workExp, project, education)
   if (section.details && Array.isArray(section.details)) {
     const detail = section.details[detailIndex] || {};
+    const formDetail = { ...(detail as any) };
+    delete formDetail.id;
     return {
-      ...detail,
+      ...formDetail,
       points: (detail as any)?.points ? [...(detail as any).points] : [],
     };
   }
