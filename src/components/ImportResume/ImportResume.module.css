@@ -1,0 +1,596 @@
+.page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(216, 107, 46, 0.1), transparent 28%),
+    #f8f4ed;
+}
+
+.main {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 58px 0 80px;
+}
+
+.intro {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.backLink {
+  width: fit-content;
+  margin: 0 auto 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #5d554f;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.backLink svg {
+  width: 17px;
+  height: 17px;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: #a64923;
+  font-size: 0.77rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.intro h1 {
+  margin: 0;
+  color: #211d1a;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.8rem, 5.2vw, 4.8rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.description {
+  max-width: 660px;
+  margin: 22px auto 0;
+  color: #655d56;
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+.privacyNote {
+  width: fit-content;
+  margin: 18px auto 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6f442f;
+  font-size: 0.79rem;
+  font-weight: 750;
+}
+
+.privacyNote svg {
+  width: 15px;
+  height: 15px;
+}
+
+.workspace {
+  margin-top: 50px;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 22px;
+  align-items: stretch;
+}
+
+.inputPanel,
+.resultPanel {
+  min-width: 0;
+  padding: 28px;
+  border: 1px solid #ddd4ca;
+  border-radius: 18px;
+  background: rgba(255, 253, 249, 0.94);
+  box-shadow: 0 14px 36px rgba(70, 51, 38, 0.07);
+}
+
+.resultPanel {
+  min-height: 640px;
+}
+
+.dropZone {
+  padding: 34px 24px;
+  border: 1.5px dashed #cdbbae;
+  border-radius: 14px;
+  background: #fbf7f1;
+  text-align: center;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.dragging {
+  border-color: #b75024;
+  background: #f8e9dd;
+  transform: translateY(-2px);
+}
+
+.uploadIcon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: #efe1d5;
+  color: #a64923;
+}
+
+.uploadIcon svg {
+  width: 25px;
+  height: 25px;
+}
+
+.dropZone h2,
+.pastePanel h2,
+.emptyState h2,
+.errorState h2,
+.successHeading h2,
+.supportNote h2 {
+  margin: 0;
+  color: #2b2622;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.dropZone h2 {
+  font-size: 1.4rem;
+}
+
+.dropZone > p {
+  margin: 9px 0 20px;
+  color: #756b63;
+  font-size: 0.88rem;
+}
+
+.fileButton {
+  min-height: 46px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #25211e;
+  color: #fffdf9;
+  font-size: 0.86rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.fileButton input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.fileButton:hover {
+  background: #b75024;
+}
+
+.fileHint {
+  margin-top: 13px;
+  display: block;
+  color: #887e76;
+  font-size: 0.7rem;
+}
+
+.divider {
+  margin: 24px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #93877e;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: #e1d8cf;
+}
+
+.panelHeading {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+}
+
+.panelHeading > span {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: #efe1d5;
+  color: #a64923;
+}
+
+.panelHeading svg {
+  width: 18px;
+}
+
+.pastePanel h2 {
+  font-size: 1.25rem;
+}
+
+.panelHeading p {
+  margin: 5px 0 0;
+  color: #7a7169;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.pastePanel > label,
+.successState > label {
+  margin: 20px 0 7px;
+  display: block;
+  color: #4f4842;
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.pastePanel textarea,
+.successState textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #d7cec5;
+  border-radius: 10px;
+  background: #fff;
+  color: #2f2a26;
+  font: inherit;
+  line-height: 1.55;
+}
+
+.pastePanel textarea {
+  min-height: 135px;
+  padding: 13px;
+  font-size: 0.82rem;
+}
+
+.pastePanel > button,
+.errorState button {
+  min-height: 43px;
+  margin-top: 11px;
+  padding: 0 15px;
+  border: 1px solid #b75024;
+  border-radius: 8px;
+  background: #fff8f2;
+  color: #9b401c;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.pastePanel > button:hover,
+.errorState button:hover {
+  background: #b75024;
+  color: #fff;
+}
+
+.emptyState {
+  height: 100%;
+  min-height: 580px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #9a8f86;
+}
+
+.emptyState > svg {
+  width: 46px;
+  height: 46px;
+  margin-bottom: 18px;
+  color: #bd9f8a;
+}
+
+.emptyState h2 {
+  font-size: 1.45rem;
+}
+
+.emptyState p {
+  max-width: 360px;
+  margin: 10px 0 0;
+  color: #81766d;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+.errorState {
+  min-height: 580px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 17px;
+}
+
+.errorState > svg {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  color: #b42318;
+}
+
+.errorState h2 {
+  font-size: 1.45rem;
+}
+
+.errorState p {
+  max-width: 390px;
+  margin: 9px 0 0;
+  color: #6f6259;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.successHeading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.successHeading > span {
+  width: 43px;
+  height: 43px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #e2f2e9;
+  color: #287052;
+}
+
+.successHeading > span svg {
+  width: 20px;
+}
+
+.successHeading p {
+  margin: 0 0 3px;
+  color: #287052;
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.successHeading h2 {
+  max-width: 410px;
+  overflow: hidden;
+  font-size: 1.32rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.successHeading > button {
+  width: 36px;
+  height: 36px;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ded5cd;
+  border-radius: 9px;
+  background: #fff;
+  color: #6d635c;
+  cursor: pointer;
+}
+
+.successHeading > button svg {
+  width: 17px;
+}
+
+.metrics {
+  margin-top: 21px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.metrics span {
+  padding: 10px 8px;
+  border-radius: 9px;
+  background: #f4eee7;
+  color: #766c64;
+  font-size: 0.67rem;
+  text-align: center;
+}
+
+.metrics strong {
+  display: block;
+  color: #342e2a;
+  font-size: 0.88rem;
+}
+
+.warning {
+  margin-top: 17px;
+  padding: 11px 13px;
+  display: flex;
+  gap: 9px;
+  border-radius: 9px;
+  background: #fff5df;
+  color: #7a5518;
+}
+
+.warning svg {
+  width: 17px;
+  flex: 0 0 auto;
+}
+
+.warning p {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.successState textarea {
+  min-height: 325px;
+  padding: 14px;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.76rem;
+}
+
+.nextStep {
+  margin-top: 16px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid #e0d7cf;
+  border-radius: 10px;
+  background: #faf7f2;
+}
+
+.nextStep p {
+  margin: 0;
+  color: #71675f;
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.nextStep button {
+  min-width: 160px;
+  min-height: 38px;
+  border: 0;
+  border-radius: 8px;
+  background: #e8e1da;
+  color: #8a8179;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.supportNote {
+  margin-top: 24px;
+  padding: 25px 28px;
+  border: 1px solid #ded5cc;
+  border-radius: 15px;
+  background: rgba(255, 253, 249, 0.72);
+}
+
+.supportNote h2 {
+  font-size: 1.22rem;
+}
+
+.supportNote ul {
+  margin: 15px 0 0;
+  padding-left: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 34px;
+  color: #4e4843;
+  font-size: 0.82rem;
+}
+
+.supportNote p {
+  margin: 14px 0 0;
+  color: #796f67;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.backLink:focus-visible,
+.fileButton:focus-within,
+.pastePanel button:focus-visible,
+.successHeading button:focus-visible,
+.errorState button:focus-visible {
+  outline: 3px solid rgba(221, 109, 44, 0.4);
+  outline-offset: 3px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 920px) {
+  .main {
+    width: min(100% - 40px, 720px);
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .resultPanel,
+  .emptyState,
+  .errorState {
+    min-height: 480px;
+  }
+}
+
+@media (max-width: 560px) {
+  .main {
+    width: calc(100% - 28px);
+    padding: 42px 0 60px;
+  }
+
+  .intro h1 {
+    font-size: 2.7rem;
+  }
+
+  .inputPanel,
+  .resultPanel {
+    padding: 18px;
+  }
+
+  .dropZone {
+    padding: 28px 16px;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nextStep {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .nextStep button {
+    width: 100%;
+  }
+
+  .supportNote ul {
+    display: block;
+  }
+
+  .supportNote li + li {
+    margin-top: 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropZone {
+    transition: none;
+  }
+
+  .spinner {
+    animation: none;
+  }
+}

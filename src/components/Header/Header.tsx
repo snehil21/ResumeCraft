@@ -40,11 +40,10 @@ const Header: FC = () => {
             <button
               className={styles.secondaryAction}
               type="button"
-              onClick={() => navigate("/start?mode=upload")}
+              onClick={() => navigate("/import")}
             >
               <UploadCloud aria-hidden="true" />
               Upload existing resume
-              <span>Soon</span>
             </button>
           </div>
 

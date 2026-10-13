@@ -160,7 +160,7 @@ const LandingSections: FC = () => {
               <div>
                 <p>Step 1</p>
                 <h3>Start with your content</h3>
-                <span>Create from scratch today. PDF and DOCX import is coming next.</span>
+                <span>Create from scratch, import a PDF or DOCX, or paste existing text.</span>
               </div>
             </li>
             <li>

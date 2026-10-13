@@ -93,26 +93,24 @@ const Start: FC = () => {
           <article className={`${styles.optionCard} ${styles.uploadCard} ${selectedMode === "upload" ? styles.selectedCard : ""}`}>
             <div className={styles.cardTopline}>
               <span className={styles.optionIcon}><UploadCloud aria-hidden="true" /></span>
-              <span className={styles.soonBadge}>Coming next</span>
+              <span className={styles.soonBadge}>Available locally</span>
             </div>
             <div>
               <p className={styles.optionLabel}>Bring what you have</p>
               <h2>Upload an existing resume</h2>
               <p>
-                PDF and DOCX import will extract your content locally and let
-                you review every field before it enters the builder.
+                Extract text from a PDF or DOCX locally. Parsing and field-by-field
+                review will be added in the next steps.
               </p>
             </div>
             <button
               type="button"
-              className={styles.disabledButton}
-              disabled
-              aria-describedby="upload-explanation"
+              onClick={() => navigate("/import")}
             >
-              Import PDF or DOCX
+              Import PDF or DOCX <ArrowRight aria-hidden="true" />
             </button>
             <p className={styles.uploadExplanation} id="upload-explanation">
-              File extraction and import review are planned in Steps 7–9.
+              Files are processed in your browser and are not sent to a server.
             </p>
           </article>
         </section>
