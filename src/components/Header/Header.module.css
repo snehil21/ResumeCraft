@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: space-evenly;
   gap: 30px;
-  background-color: rgb(238, 252, 255);
+  background-color: #f7f2ea;
   min-height: 85vh;
 }
 
@@ -22,8 +22,7 @@
 
 .heading span {
   background-clip: text;
-  background-image: linear-gradient(to right, #239ce2, #1369b9);
-  color: transparent;
+  color: #b84f22;
 }
 
 .left {
@@ -36,7 +35,7 @@
 .scrollButton {
   margin-top: 15px;
   padding: 12px 24px;
-  background: linear-gradient(to right, #239ce2, #1369b9);
+  background: #1f1c1a;
   color: white;
   border: none;
   border-radius: 50px;
@@ -48,12 +47,13 @@
   justify-content: center;
   gap: 8px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(35, 156, 226, 0.3);
+  box-shadow: 0 4px 15px rgba(48, 39, 31, 0.18);
 }
 
 .scrollButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(35, 156, 226, 0.4);
+  background: #b84f22;
+  box-shadow: 0 6px 20px rgba(126, 57, 29, 0.22);
 }
 
 .scrollButton:active {
@@ -98,4 +98,3 @@
     padding: 10px 20px;
   }
 }
-
