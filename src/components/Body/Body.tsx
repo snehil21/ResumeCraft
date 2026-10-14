@@ -185,8 +185,10 @@ const Body: FC = () => {
     } finally { event.target.value = ""; }
   };
 
-  const preview = <ResumeRenderer ref={resumeRef} document={document} />;
   const templateName = getTemplateOption(template).title;
+  const previewPageHeight = pageDimensions.heightPx * previewMetrics.scale;
+  const previewPageWidth = pageDimensions.widthPx * previewMetrics.scale;
+  const previewPageGap = 18;
 
   return (
     <div className={styles.container}>
@@ -283,19 +285,37 @@ const Body: FC = () => {
             </span>
           </div>
           <div className={styles.previewViewport} ref={previewViewportRef}>
+            <div className={styles.printSource} style={{ width: pageDimensions.width }} aria-hidden="true">
+              <ResumeRenderer ref={resumeRef} document={document} />
+            </div>
             <div
               className={styles.previewStage}
               style={{
-                width: `${pageDimensions.widthPx * previewMetrics.scale}px`,
-                height: `${previewMetrics.contentHeight * previewMetrics.scale}px`,
+                width: `${previewPageWidth}px`,
+                height: `${previewMetrics.pageCount * previewPageHeight + Math.max(0, previewMetrics.pageCount - 1) * previewPageGap}px`,
               }}
+              role="img"
+              aria-label={`Resume preview showing ${previewMetrics.pageCount} ${previewMetrics.pageCount === 1 ? "page" : "pages"}`}
             >
-              <div className={styles.previewDocument} style={{ width: pageDimensions.width, transform: `scale(${previewMetrics.scale})` }}>{preview}</div>
               {Array.from({ length: previewMetrics.pageCount }, (_, index) => (
-                <span key={index} className={styles.pageNumber} style={{ top: `${index * pageDimensions.heightPx * previewMetrics.scale + 8}px` }}>Page {index + 1}</span>
-              ))}
-              {Array.from({ length: Math.max(0, previewMetrics.pageCount - 1) }, (_, index) => (
-                <span key={index} className={styles.pageBoundary} style={{ top: `${(index + 1) * pageDimensions.heightPx * previewMetrics.scale}px` }} />
+                <div
+                  key={index}
+                  className={styles.previewPage}
+                  style={{ width: `${previewPageWidth}px`, height: `${previewPageHeight}px` }}
+                  aria-hidden="true"
+                >
+                  <div
+                    className={styles.previewPageDocument}
+                    style={{
+                      width: pageDimensions.width,
+                      top: `${-index * previewPageHeight}px`,
+                      transform: `scale(${previewMetrics.scale})`,
+                    }}
+                  >
+                    <ResumeRenderer document={document} />
+                  </div>
+                  <span className={styles.pageNumber}>Page {index + 1} of {previewMetrics.pageCount}</span>
+                </div>
               ))}
             </div>
           </div>

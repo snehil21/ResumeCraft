@@ -40,8 +40,12 @@
 .previewPageFit { border-color: #b7d6c2; background: #e8f5ed; color: #256247; }
 .previewPageOverflow { border-color: #e0bd77; background: #fff0d1; color: #8a5710; }
 .previewViewport { max-height: calc(100vh - 190px); padding: 18px; overflow: auto; border: 1px solid #d8cec5; border-radius: 12px; background: #d9d2ca; box-shadow: 0 16px 38px rgba(55,39,27,.13); }
-.previewStage { position: relative; margin: 0 auto; }.previewDocument { position: absolute; inset: 0 auto auto 0; transform-origin: top left; }
-.pageBoundary { position: absolute; z-index: 3; right: 0; left: 0; border-top: 2px dashed #b75024; pointer-events: none; }.pageNumber { position: absolute; z-index: 4; right: 8px; padding: 3px 6px; border-radius: 5px; background: rgba(42,37,32,.82); color: #fff; font-size: .58rem; font-weight: 800; pointer-events: none; }
+.printSource { position: fixed; top: 0; left: -100000px; visibility: hidden; pointer-events: none; }
+.previewStage { position: relative; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.previewPage { position: relative; flex: 0 0 auto; overflow: hidden; background: #fff; border-radius: 2px; box-shadow: 0 5px 16px rgba(43,32,24,.2); }
+.previewPageDocument { position: absolute; left: 0; transform-origin: top left; }
+.previewPageDocument :global([data-resume-sheet]) { box-shadow: none; }
+.pageNumber { position: absolute; z-index: 4; top: 8px; right: 8px; padding: 3px 6px; border-radius: 5px; background: rgba(42,37,32,.82); color: #fff; font-size: .58rem; font-weight: 800; pointer-events: none; }
 .modePanel { display: grid; gap: 13px; }.reviewDownload { width: 100%; min-height: 46px; }
 .iconButton:hover:not(:disabled),.moreButton:hover,.downloadButton:hover,.reviewDownload:hover { border-color: #b75024; background: #b75024; color: #fff; }
 .brandMark:focus-visible,.iconButton:focus-visible,.moreButton:focus-visible,.fileMenuPopover button:focus-visible,.downloadButton:focus-visible,.modeTabs button:focus-visible,.mobilePaneTabs button:focus-visible,.reviewDownload:focus-visible { outline: 3px solid rgba(183,80,36,.28); outline-offset: 2px; }
