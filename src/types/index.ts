@@ -114,7 +114,7 @@ export interface ResumeInformation {
   [key: string]: Section;
 }
 
-export type TemplateId = "classic" | "vertical";
+export type TemplateId = "classic" | "vertical" | "compact";
 export type PageSize = "A4" | "LETTER";
 export type DateFormat = "MMM YYYY" | "MM/YYYY" | "YYYY";
 export type LayoutMode = "one" | "two";

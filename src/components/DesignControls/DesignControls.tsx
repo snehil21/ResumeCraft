@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 import { Columns, RefreshCw, Square } from "react-feather";
 
-import { COLORS, DESIGN_LIMITS, FONT_OPTIONS } from "../../constants";
+import { COLORS, DESIGN_LIMITS, FONT_OPTIONS, TEMPLATE_OPTIONS, getTemplateOption } from "../../constants";
 import { useResumeStore } from "../../store";
 import { DateFormat, DesignPreset, LayoutMode, PageSize } from "../../types";
 import styles from "./DesignControls.module.css";
@@ -42,10 +42,7 @@ const DesignControls: FC = () => {
   } = useResumeStore();
   const { template, theme, page, layout } = document;
 
-  const templateChoices = [
-    { id: "classic" as const, title: "Classic split", note: "One or two columns" },
-    { id: "vertical" as const, title: "Clean vertical", note: "Focused single column" },
-  ];
+  const activeTemplate = getTemplateOption(template);
 
   return <div className={styles.controls}>
     <section className={styles.card}>
@@ -58,14 +55,14 @@ const DesignControls: FC = () => {
     <section className={styles.card}>
       <div><h3>Template and columns</h3><p>Choose a layout that keeps your content easy to scan.</p></div>
       <div className={styles.templateGrid}>
-        {templateChoices.map((choice) => <button type="button" key={choice.id} className={template === choice.id ? styles.selected : ""} onClick={() => setTemplate(choice.id)} aria-pressed={template === choice.id}><Columns /><span><strong>{choice.title}</strong><small>{choice.note}</small></span></button>)}
+        {TEMPLATE_OPTIONS.map((choice) => <button type="button" key={choice.id} className={template === choice.id ? styles.selected : ""} onClick={() => setTemplate(choice.id)} aria-pressed={template === choice.id}><Columns /><span><strong>{choice.title}</strong><small>{choice.note}</small></span></button>)}
       </div>
-      {template === "classic" ? <>
+      {activeTemplate.supportsColumns ? <>
         <div className={styles.segmented} role="group" aria-label="Column layout">
           {(["one", "two"] as LayoutMode[]).map((mode) => <button type="button" key={mode} className={layout.mode === mode ? styles.selectedSegment : ""} onClick={() => setLayoutMode(mode)} aria-pressed={layout.mode === mode}><Square /> {mode === "one" ? "One column" : "Two columns"}</button>)}
         </div>
         <RangeControl label="Left column width" value={layout.columnRatio} {...DESIGN_LIMITS.columnRatio} suffix="%" disabled={layout.mode !== "two"} onChange={setColumnRatio} />
-      </> : <p className={styles.inlineNote}>Clean vertical uses a single-column layout.</p>}
+      </> : <p className={styles.inlineNote}>{activeTemplate.title} uses a single-column layout.</p>}
     </section>
 
     <section className={styles.card}>

@@ -8,7 +8,7 @@
 .segmented { display: flex; padding: 4px; gap: 4px; border-radius: 9px; background: #eee7e0; }
 .segmented button { flex: 1; min-height: 35px; padding: 0 9px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: #655c55; font: inherit; font-size: .68rem; font-weight: 780; text-transform: capitalize; cursor: pointer; }
 .segmented .selectedSegment { border-color: #cfad98; background: #fffaf6; color: #963f1e; box-shadow: 0 1px 4px rgba(66,42,28,.08); }
-.templateGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+.templateGrid { display: grid; grid-template-columns: repeat(auto-fit,minmax(145px,1fr)); gap: 9px; }
 .templateGrid button { min-height: 70px; padding: 12px; display: flex; align-items: center; gap: 10px; border: 1px solid #ded5cd; border-radius: 10px; background: #fbf8f4; color: #50473f; font: inherit; text-align: left; cursor: pointer; }
 .templateGrid button>span { display: grid; gap: 2px; }.templateGrid strong { font-size: .73rem; }.templateGrid small { color: #857970; font-size: .61rem; }.templateGrid .selected { border-color: #bd714d; background: #f7e9df; color: #963e1c; box-shadow: inset 0 0 0 1px #bd714d; }
 .rangeGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px 20px; }

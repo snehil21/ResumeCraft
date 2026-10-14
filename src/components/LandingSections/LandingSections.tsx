@@ -69,8 +69,8 @@ const LandingSections: FC = () => {
             <p className={styles.kicker}>Layouts with a purpose</p>
             <h2>Start with structure. Make it feel like yours.</h2>
             <p>
-              The current builder includes a space-efficient split layout and
-              a straightforward single-column layout. Both keep content—not
+              Choose a conservative ATS layout, a restrained split format, or
+              a denser technical template. Every option keeps content—not
               decoration—at the center.
             </p>
             <ul>
@@ -110,8 +110,8 @@ const LandingSections: FC = () => {
               </div>
               <div className={styles.templateMeta}>
                 <div>
-                  <p>Classic split</p>
-                  <span>Two-column · space efficient</span>
+                  <p>Modern Split</p>
+                  <span>Restrained · two-column</span>
                 </div>
                 <Columns aria-hidden="true" />
               </div>
@@ -137,8 +137,28 @@ const LandingSections: FC = () => {
               </div>
               <div className={styles.templateMeta}>
                 <div>
-                  <p>Clean vertical</p>
-                  <span>Single-column · direct</span>
+                  <p>ATS Classic</p>
+                  <span>Conservative · single-column</span>
+                </div>
+                <Columns aria-hidden="true" />
+              </div>
+            </article>
+
+            <article className={`${styles.templateCard} ${styles.compactCard}`}>
+              <div className={`${styles.miniResume} ${styles.compactResume}`} aria-hidden="true">
+                <div className={styles.compactHeader}>
+                  <strong>Alex Morgan</strong>
+                  <span>Platform Engineer</span>
+                </div>
+                <div className={styles.compactBody}>
+                  <div><i /><strong /><span /><span /><i /><span /><span /></div>
+                  <div><i /><strong /><span /><span /><span /><i /><span /></div>
+                </div>
+              </div>
+              <div className={styles.templateMeta}>
+                <div>
+                  <p>Compact Technical</p>
+                  <span>Dense · experience-first</span>
                 </div>
                 <Columns aria-hidden="true" />
               </div>

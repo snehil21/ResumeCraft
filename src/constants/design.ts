@@ -1,4 +1,4 @@
-import { DesignPreset, ResumeTheme } from "../types";
+import type { DesignPreset, ResumeTheme, TemplateId } from "../types/index.ts";
 
 export const FONT_OPTIONS = [
   { label: "Inter", value: "Inter, Arial, sans-serif" },
@@ -49,6 +49,51 @@ export const DESIGN_PRESETS: Record<DesignPreset, Partial<ResumeTheme> & { pageM
     sectionGap: 22,
     itemGap: 16,
     pageMargin: 32,
+  },
+};
+
+export const TEMPLATE_DEFAULTS: Record<TemplateId, {
+  theme: ResumeTheme;
+  pageMargin: number;
+  layoutMode: "one" | "two";
+  columnRatio: number;
+}> = {
+  vertical: {
+    theme: {
+      ...DEFAULT_RESUME_THEME,
+      accentColor: "#4b4038",
+      fontFamily: "Arial, Helvetica, sans-serif",
+      baseFontSize: 13,
+      nameFontSize: 34,
+      headingFontSize: 16,
+      lineHeight: 1.35,
+      sectionGap: 14,
+      itemGap: 10,
+    },
+    pageMargin: 28,
+    layoutMode: "one",
+    columnRatio: 55,
+  },
+  classic: {
+    theme: { ...DEFAULT_RESUME_THEME },
+    pageMargin: 24,
+    layoutMode: "two",
+    columnRatio: 55,
+  },
+  compact: {
+    theme: {
+      ...DEFAULT_RESUME_THEME,
+      accentColor: "#2f6b52",
+      baseFontSize: 11,
+      nameFontSize: 30,
+      headingFontSize: 15,
+      lineHeight: 1.2,
+      sectionGap: 8,
+      itemGap: 5,
+    },
+    pageMargin: 18,
+    layoutMode: "two",
+    columnRatio: 60,
   },
 };
 

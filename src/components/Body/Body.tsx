@@ -6,12 +6,11 @@ import {
 } from "react-feather";
 
 import Editor from "../Editor/Editor";
-import Resume from "../Resume/Resume";
-import ResumeVertical from "../Resume/ResumeVertical";
+import ResumeRenderer from "../Resume/ResumeRenderer";
 import DesignControls from "../DesignControls/DesignControls";
 import styles from "./Body.module.css";
 import { useResumeStore } from "../../store";
-import { SECTION_LABELS } from "../../constants";
+import { SECTION_LABELS, getTemplateOption } from "../../constants";
 import { ResumeDocument, Section } from "../../types";
 import {
   isResumeDocument, isResumeDocumentEmpty, readPersistedResumeDocument,
@@ -48,8 +47,8 @@ const Body: FC = () => {
   const handlePrint = useReactToPrint({ documentTitle: "Resume" });
 
   const {
-    document, pastDocuments, futureDocuments, setSectionColumns,
-    startBlankResume, loadSampleResume, resetResume,
+    document, pastDocuments, futureDocuments, startBlankResume,
+    loadSampleResume, resetResume,
     importResumeDocument, ensureDocumentSaved, undo, redo,
   } = useResumeStore();
   const { template } = document;
@@ -131,9 +130,8 @@ const Body: FC = () => {
     } finally { event.target.value = ""; }
   };
 
-  const preview = template === "classic" ? (
-    <Resume ref={resumeRef} document={document} onSectionColumnsChange={setSectionColumns} />
-  ) : <ResumeVertical ref={resumeRef} document={document} />;
+  const preview = <ResumeRenderer ref={resumeRef} document={document} />;
+  const templateName = getTemplateOption(template).title;
 
   return (
     <div className={styles.container}>
@@ -208,7 +206,7 @@ const Body: FC = () => {
         </section>
 
         <aside className={`${styles.previewPanel} ${mobilePane === "edit" ? styles.mobileHidden : ""}`}>
-          <div className={styles.previewHeader}><div><p>Live preview</p><h2>{template === "classic" ? "Classic split" : "Clean vertical"}</h2></div><span>{document.page.size}</span></div>
+          <div className={styles.previewHeader}><div><p>Live preview</p><h2>{templateName}</h2></div><span>{document.page.size}</span></div>
           <div className={styles.previewViewport}>{preview}</div>
         </aside>
       </main>

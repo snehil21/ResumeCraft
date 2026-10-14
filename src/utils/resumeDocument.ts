@@ -32,7 +32,7 @@ export const isResumeDocument = (value: unknown): value is ResumeDocument => {
     typeof value.title !== "string" ||
     typeof value.createdAt !== "string" ||
     typeof value.updatedAt !== "string" ||
-    (value.template !== "classic" && value.template !== "vertical") ||
+    (value.template !== "classic" && value.template !== "vertical" && value.template !== "compact") ||
     !isRecord(theme) ||
     !isRecord(page) ||
     !isRecord(layout) ||

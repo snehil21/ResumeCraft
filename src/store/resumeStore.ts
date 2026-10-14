@@ -4,6 +4,7 @@ import {
   DEFAULT_RESUME_THEME,
   DESIGN_LIMITS,
   DESIGN_PRESETS,
+  TEMPLATE_DEFAULTS,
   SECTIONS,
   SECTION_LABELS,
 } from "../constants";
@@ -335,7 +336,7 @@ const normalizeResumeDocument = (document: ResumeDocument): ResumeDocument => {
       columns,
       mode: document.layout.mode === "one" || document.layout.mode === "two"
         ? document.layout.mode
-        : document.template === "classic" ? "two" : "one",
+        : TEMPLATE_DEFAULTS[document.template].layoutMode,
       columnRatio: clamp(document.layout.columnRatio ?? 55, DESIGN_LIMITS.columnRatio.min, DESIGN_LIMITS.columnRatio.max),
     },
   };
@@ -502,20 +503,30 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
     }),
 
   resetTemplateDefaults: () =>
-    set((state) => withDocumentHistory(state, touchDocument(state.document, {
-      theme: { ...DEFAULT_RESUME_THEME },
-      page: { size: "A4", margin: 24 },
-      layout: {
-        ...state.document.layout,
-        mode: state.document.template === "classic" ? "two" : "one",
-        columnRatio: 55,
-      },
-    }))),
+    set((state) => {
+      const defaults = TEMPLATE_DEFAULTS[state.document.template];
+      return withDocumentHistory(state, touchDocument(state.document, {
+        theme: { ...defaults.theme },
+        page: { size: "A4", margin: defaults.pageMargin },
+        layout: {
+          ...state.document.layout,
+          mode: defaults.layoutMode,
+          columnRatio: defaults.columnRatio,
+        },
+      }));
+    }),
 
   setTemplate: (template) =>
     set((state) => withDocumentHistory(
       state,
-      touchDocument(state.document, { template })
+      touchDocument(state.document, {
+        template,
+        layout: {
+          ...state.document.layout,
+          mode: TEMPLATE_DEFAULTS[template].layoutMode,
+          columnRatio: TEMPLATE_DEFAULTS[template].columnRatio,
+        },
+      })
     )),
 
   setSectionColumns: (columns) =>
