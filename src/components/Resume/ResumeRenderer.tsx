@@ -4,12 +4,10 @@ import { Calendar, GitHub, Linkedin, Mail, MapPin, Paperclip, Phone } from "reac
 import { SECTIONS, getTemplateOption } from "../../constants";
 import { BasicDetail, ResumeDocument, Section } from "../../types";
 import { formatResumeDate } from "../../utils/formatResumeDate";
+import { getEmailHref, getExternalHref, getPhoneHref } from "../../utils/resumeExport";
 import styles from "./ResumeRenderer.module.css";
 
 interface ResumeRendererProps { document: ResumeDocument; }
-
-const externalHref = (value: string): string =>
-  /^(https?:\/\/|mailto:|tel:)/i.test(value) ? value : `https://${value}`;
 
 const hasSectionContent = (section: Section): boolean => {
   if (typeof section.detail === "string") return Boolean(section.detail.trim());
@@ -54,10 +52,10 @@ const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
         {item.location ? <p className={styles.meta}><MapPin /> {item.location}</p> : null}
         {item.overview ? <p className={styles.paragraph}>{item.overview}</p> : null}
         <div className={styles.entryLinks}>
-          {item.link ? <a href={externalHref(item.link)}><Paperclip /> {item.link}</a> : null}
-          {item.github ? <a href={externalHref(item.github)}><GitHub /> {item.github}</a> : null}
-          {item.certificationLink ? <a href={externalHref(item.certificationLink)}><Paperclip /> {item.certificationLink}</a> : null}
-          {item.website ? <a href={externalHref(item.website)}><Paperclip /> {item.website}</a> : null}
+          {item.link ? <a href={getExternalHref(item.link)}><Paperclip /> {item.link}</a> : null}
+          {item.github ? <a href={getExternalHref(item.github)}><GitHub /> {item.github}</a> : null}
+          {item.certificationLink ? <a href={getExternalHref(item.certificationLink)}><Paperclip /> {item.certificationLink}</a> : null}
+          {item.website ? <a href={getExternalHref(item.website)}><Paperclip /> {item.website}</a> : null}
         </div>
         {points(item.points)}
       </article>;
@@ -96,12 +94,12 @@ const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
     } as CSSProperties;
 
     const contactItems = [
-      basic.email ? <a key="email" href={`mailto:${basic.email}`}><Mail /> {basic.email}</a> : null,
-      basic.phone ? <a key="phone" href={`tel:${basic.phone}`}><Phone /> {basic.phone}</a> : null,
+      basic.email ? <a key="email" href={getEmailHref(basic.email)}><Mail /> {basic.email}</a> : null,
+      basic.phone ? <a key="phone" href={getPhoneHref(basic.phone)}><Phone /> {basic.phone}</a> : null,
       basic.location ? <span key="location"><MapPin /> {basic.location}</span> : null,
-      basic.linkedin ? <a key="linkedin" href={externalHref(basic.linkedin)}><Linkedin /> {basic.linkedin}</a> : null,
-      basic.github ? <a key="github" href={externalHref(basic.github)}><GitHub /> {basic.github}</a> : null,
-      basic.website ? <a key="website" href={externalHref(basic.website)}><Paperclip /> {basic.website}</a> : null,
+      basic.linkedin ? <a key="linkedin" href={getExternalHref(basic.linkedin)}><Linkedin /> {basic.linkedin}</a> : null,
+      basic.github ? <a key="github" href={getExternalHref(basic.github)}><GitHub /> {basic.github}</a> : null,
+      basic.website ? <a key="website" href={getExternalHref(basic.website)}><Paperclip /> {basic.website}</a> : null,
     ].filter(Boolean);
 
     const hasContent = Object.values(resumeInformation).some(hasSectionContent);
@@ -111,7 +109,7 @@ const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
         ? styles.compactTechnical
         : styles.modernSplit;
 
-    return <div ref={ref}>
+    return <div ref={ref} data-resume-root>
       <div
         className={`${styles.sheet} ${templateClass}`}
         style={sheetStyle}
@@ -119,6 +117,7 @@ const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
         data-schema-version={document.schemaVersion}
         data-page-size={page.size}
         data-template={template}
+        data-resume-sheet
       >
         {!hasContent ? <div className={styles.placeholder}>Add your details to start building the resume preview.</div> : null}
         <header className={styles.header}>

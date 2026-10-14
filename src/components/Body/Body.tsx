@@ -15,10 +15,15 @@ import { ResumeDocument, Section } from "../../types";
 import {
   isResumeDocument, isResumeDocumentEmpty, readPersistedResumeDocument,
 } from "../../utils/resumeDocument";
+import {
+  calculatePrintedPageCount, createResumePdfTitle, getPrintPageStyle,
+  PRINT_PAGE_DIMENSIONS,
+} from "../../utils/resumeExport";
 
 type SaveStatus = "saving" | "saved" | "error";
 type BuilderMode = "content" | "design" | "review";
 type MobilePane = "edit" | "preview";
+type PreviewMetrics = { scale: number; pageCount: number; contentHeight: number };
 
 const modes: Array<{ id: BuilderMode; label: string; description: string; icon: typeof Edit3 }> = [
   { id: "content", label: "Content", description: "Write and organize", icon: Edit3 },
@@ -39,12 +44,15 @@ const hasMeaningfulContent = (section: Section): boolean => {
 
 const Body: FC = () => {
   const resumeRef = useRef<HTMLDivElement>(null);
+  const previewViewportRef = useRef<HTMLDivElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saving");
   const [draftNotice, setDraftNotice] = useState("");
   const [mode, setMode] = useState<BuilderMode>("content");
   const [mobilePane, setMobilePane] = useState<MobilePane>("edit");
-  const handlePrint = useReactToPrint({ documentTitle: "Resume" });
+  const [previewMetrics, setPreviewMetrics] = useState<PreviewMetrics>({
+    scale: 1, pageCount: 1, contentHeight: PRINT_PAGE_DIMENSIONS.A4.heightPx,
+  });
 
   const {
     document, pastDocuments, futureDocuments, startBlankResume,
@@ -52,6 +60,13 @@ const Body: FC = () => {
     importResumeDocument, ensureDocumentSaved, undo, redo,
   } = useResumeStore();
   const { template } = document;
+  const pageDimensions = PRINT_PAGE_DIMENSIONS[document.page.size];
+  const handlePrint = useReactToPrint({
+    contentRef: resumeRef,
+    documentTitle: () => createResumePdfTitle(document),
+    pageStyle: getPrintPageStyle(document.page.size),
+    onPrintError: () => setDraftNotice("PDF export could not start. Try your browser’s print command."),
+  });
 
   useEffect(() => { ensureDocumentSaved(); }, [ensureDocumentSaved]);
 
@@ -65,6 +80,37 @@ const Body: FC = () => {
     }, 350);
     return () => window.clearTimeout(statusTimer);
   }, [document]);
+
+  useEffect(() => {
+    const viewport = previewViewportRef.current;
+    const sheet = resumeRef.current?.querySelector<HTMLElement>("[data-resume-sheet]");
+    if (!viewport || !sheet) return undefined;
+
+    let frame = 0;
+    const measure = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const availableWidth = Math.max(0, viewport.clientWidth - 36);
+        if (!availableWidth) return;
+        const scale = Math.min(1, availableWidth / pageDimensions.widthPx);
+        const contentHeight = Math.max(sheet.scrollHeight, sheet.offsetHeight, pageDimensions.heightPx);
+        const pageCount = calculatePrintedPageCount(contentHeight, pageDimensions.heightPx);
+        setPreviewMetrics((current) => (
+          Math.abs(current.scale - scale) < 0.001 &&
+          current.pageCount === pageCount &&
+          Math.abs(current.contentHeight - contentHeight) < 1
+            ? current
+            : { scale, pageCount, contentHeight }
+        ));
+      });
+    };
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(viewport);
+    observer.observe(sheet);
+    measure();
+    return () => { observer.disconnect(); window.cancelAnimationFrame(frame); };
+  }, [document, pageDimensions.heightPx, pageDimensions.widthPx]);
 
   useEffect(() => {
     const handleKeyboardHistory = (event: KeyboardEvent) => {
@@ -149,7 +195,7 @@ const Body: FC = () => {
             </div>
             <button type="button" className={styles.iconButton} onClick={undo} disabled={!pastDocuments.length} aria-label="Undo last document edit" title="Undo"><RotateCcw /></button>
             <button type="button" className={styles.iconButton} onClick={redo} disabled={!futureDocuments.length} aria-label="Redo last document edit" title="Redo"><RotateCw /></button>
-            <button type="button" className={styles.downloadButton} onClick={() => handlePrint(() => resumeRef.current)}><Download /> Download PDF</button>
+            <button type="button" className={styles.downloadButton} onClick={handlePrint}><Download /> Download PDF</button>
           </div>
         </div>
 
@@ -199,15 +245,36 @@ const Body: FC = () => {
                 <div className={!reviewStats.missingBasics.length ? styles.checkPassed : ""}>{!reviewStats.missingBasics.length ? <CheckCircle /> : <AlertCircle />}<span><strong>Header essentials</strong><small>{reviewStats.missingBasics.length ? `Missing: ${reviewStats.missingBasics.join(", ")}` : "Name, title, and email are present"}</small></span></div>
                 <div className={!reviewStats.incompleteSections.length ? styles.checkPassed : ""}>{!reviewStats.incompleteSections.length ? <CheckCircle /> : <AlertCircle />}<span><strong>Visible section content</strong><small>{reviewStats.incompleteSections.length ? `${reviewStats.incompleteSections.length} visible section(s) need content` : "Every visible section contains content"}</small></span></div>
                 <div className={styles.checkPassed}><CheckCircle /><span><strong>Saved locally</strong><small>Your latest document is stored in this browser</small></span></div>
+                <div className={previewMetrics.pageCount === 1 ? styles.checkPassed : ""}>{previewMetrics.pageCount === 1 ? <CheckCircle /> : <AlertCircle />}<span><strong>Page fit</strong><small>{previewMetrics.pageCount === 1 ? "Content fits on one page" : `Content currently spans ${previewMetrics.pageCount} pages`}</small></span></div>
               </div>
             </section>
-            <button type="button" className={styles.reviewDownload} onClick={() => handlePrint(() => resumeRef.current)}><Download /> Download reviewed PDF</button>
+            <button type="button" className={styles.reviewDownload} onClick={handlePrint}><Download /> Download reviewed PDF</button>
           </div> : null}
         </section>
 
         <aside className={`${styles.previewPanel} ${mobilePane === "edit" ? styles.mobileHidden : ""}`}>
-          <div className={styles.previewHeader}><div><p>Live preview</p><h2>{templateName}</h2></div><span>{document.page.size}</span></div>
-          <div className={styles.previewViewport}>{preview}</div>
+          <div className={styles.previewHeader}><div><p>Live preview</p><h2>{templateName}</h2></div><span>{document.page.size} · {previewMetrics.pageCount} {previewMetrics.pageCount === 1 ? "page" : "pages"}</span></div>
+          <div className={`${styles.paginationStatus} ${previewMetrics.pageCount > 1 ? styles.overflowWarning : styles.pageFit}`} role="status">
+            {previewMetrics.pageCount > 1 ? <AlertCircle /> : <CheckCircle />}
+            <span><strong>{previewMetrics.pageCount > 1 ? "Page overflow detected" : "Fits on one page"}</strong><small>{previewMetrics.pageCount > 1 ? `The PDF will use ${previewMetrics.pageCount} pages. Dashed lines show page boundaries; entries stay together when possible.` : "The preview and exported PDF use the same physical page size."}</small></span>
+          </div>
+          <div className={styles.previewViewport} ref={previewViewportRef}>
+            <div
+              className={styles.previewStage}
+              style={{
+                width: `${pageDimensions.widthPx * previewMetrics.scale}px`,
+                height: `${previewMetrics.contentHeight * previewMetrics.scale}px`,
+              }}
+            >
+              <div className={styles.previewDocument} style={{ width: pageDimensions.width, transform: `scale(${previewMetrics.scale})` }}>{preview}</div>
+              {Array.from({ length: previewMetrics.pageCount }, (_, index) => (
+                <span key={index} className={styles.pageNumber} style={{ top: `${index * pageDimensions.heightPx * previewMetrics.scale + 8}px` }}>Page {index + 1}</span>
+              ))}
+              {Array.from({ length: Math.max(0, previewMetrics.pageCount - 1) }, (_, index) => (
+                <span key={index} className={styles.pageBoundary} style={{ top: `${(index + 1) * pageDimensions.heightPx * previewMetrics.scale}px` }} />
+              ))}
+            </div>
+          </div>
         </aside>
       </main>
     </div>

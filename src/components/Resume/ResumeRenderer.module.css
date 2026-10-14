@@ -5,7 +5,7 @@
   margin: 0 auto;
   padding: var(--page-margin, 24px);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   background: #fff;
   color: var(--text-color, #1f2937);
   font-family: var(--resume-font, Inter, Arial, sans-serif);
@@ -52,4 +52,10 @@
   .date { white-space: normal; }
   .compactTechnical .header { grid-template-columns: 1fr; }
   .compactTechnical .contacts { justify-content: flex-start; }
+}
+
+@media print {
+  .sheet { box-shadow: none; }
+  .section,.item { break-inside: avoid-page; page-break-inside: avoid; }
+  .contacts a,.entryLinks a { text-decoration: none; }
 }
