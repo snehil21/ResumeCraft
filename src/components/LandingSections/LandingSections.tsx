@@ -72,8 +72,8 @@ const LandingSections: FC = () => {
             <h2>Start with structure. Make it feel like yours.</h2>
             <p>
               Choose a conservative ATS layout, a restrained split format, or
-              a denser technical template. Every option keeps content—not
-              decoration—at the center.
+              a denser technical template. Every option keeps content not
+              decoration at the center.
             </p>
             <ul>
               <li><Check aria-hidden="true" /> Live preview while editing</li>
