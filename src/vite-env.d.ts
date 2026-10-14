@@ -48,6 +48,10 @@ declare module 'mammoth/mammoth.browser' {
       value: string;
       messages: MammothMessage[];
     }>;
+    convertToHtml: (input: { arrayBuffer: ArrayBuffer }) => Promise<{
+      value: string;
+      messages: MammothMessage[];
+    }>;
   };
 
   export default mammoth;

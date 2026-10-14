@@ -149,6 +149,9 @@ interface ContentBlock {
   lines: SourceLine[];
 }
 
+const BULLET_PATTERN = /^(?:[-*•▪◦‣]|\d+[.)])\s+/;
+const LOCATION_LABEL_PATTERN = /^(?:location|based in)\s*:\s*/i;
+
 const normalizeHeading = (line: string): string =>
   line
     .trim()
@@ -205,6 +208,70 @@ const detectLinkType = (value: string): DetectedLink["type"] => {
   return "other";
 };
 
+const normalizeDetectedLink = (value: string): string =>
+  value
+    .trim()
+    .replace(/^mailto:/i, "")
+    .replace(/^tel:/i, "")
+    .replace(/[.)]+$/, "");
+
+const canonicalLink = (value: string): string =>
+  normalizeDetectedLink(value)
+    .replace(/^https?:\/\//i, "")
+    .replace(/^www\./i, "")
+    .replace(/\/$/, "")
+    .toLowerCase();
+
+const isLocationCandidate = (value: string): boolean => {
+  const candidate = value.trim().replace(LOCATION_LABEL_PATTERN, "");
+  const words = candidate.split(/\s+/);
+  if (!candidate || words.length > 8 || /@|https?:|www\.|\d{4}/i.test(candidate)) return false;
+  return /^(?:remote|hybrid|on[ -]?site)$/i.test(candidate) ||
+    /^[\p{L}.'-]+(?:\s+[\p{L}.'-]+){0,3}(?:,\s*[\p{L}.'-]+(?:\s+[\p{L}.'-]+){0,3}){1,2}$/u.test(candidate);
+};
+
+const splitContactSegments = (line: SourceLine): SourceLine[] =>
+  line.text
+    .split(/\s*[|•]\s*/)
+    .map((text) => ({ text: text.trim(), lineNumber: line.lineNumber }))
+    .filter((segment) => segment.text);
+
+const stripDateRanges = (text: string): string => {
+  DATE_RANGE_PATTERN.lastIndex = 0;
+  return text
+    .replace(DATE_RANGE_PATTERN, "")
+    .replace(/^[\s|·,:–—-]+|[\s|·,:–—-]+$/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+};
+
+const splitSectionEntries = (
+  sectionType: ResumeSectionType,
+  lines: SourceLine[]
+): SourceLine[][] => {
+  if (!["experience", "education", "projects"].includes(sectionType) || lines.length < 2) {
+    return [lines];
+  }
+
+  const dateLineIndices = lines
+    .map((line, index) => (detectDateRanges([line]).length ? index : -1))
+    .filter((index) => index >= 0);
+  if (dateLineIndices.length < 2) return [lines];
+
+  const starts = [0];
+  dateLineIndices.slice(1).forEach((dateIndex) => {
+    const dateLineHasLabel = Boolean(stripDateRanges(lines[dateIndex].text));
+    const previousLine = lines[dateIndex - 1];
+    const boundary = !dateLineHasLabel && previousLine && !BULLET_PATTERN.test(previousLine.text)
+      ? dateIndex - 1
+      : dateIndex;
+    const previousStart = starts[starts.length - 1];
+    if (boundary > previousStart) starts.push(boundary);
+  });
+
+  return starts.map((start, index) => lines.slice(start, starts[index + 1] ?? lines.length));
+};
+
 const createSectionRecord = (): Record<ResumeSectionType, ParsedResumeSection[]> => ({
   summary: [],
   experience: [],
@@ -215,7 +282,7 @@ const createSectionRecord = (): Record<ResumeSectionType, ParsedResumeSection[]>
   achievements: [],
 });
 
-const parseContact = (lines: SourceLine[]) => {
+const parseContact = (lines: SourceLine[], embeddedLinks: string[]) => {
   const consumed = new Set<number>();
   const links: DetectedLink[] = [];
   let email: DetectedValue | null = null;
@@ -247,6 +314,29 @@ const parseContact = (lines: SourceLine[]) => {
     });
   });
 
+  embeddedLinks.forEach((rawLink) => {
+    const value = normalizeDetectedLink(rawLink);
+    if (/^mailto:/i.test(rawLink) || EMAIL_PATTERN.test(value)) {
+      if (!email) email = { value, confidence: "high", lineNumber: 1 };
+      return;
+    }
+    if (/^tel:/i.test(rawLink)) {
+      const digitCount = value.replace(/\D/g, "").length;
+      if (!phone && digitCount >= 7 && digitCount <= 15) {
+        phone = { value, confidence: "high", lineNumber: 1 };
+      }
+      return;
+    }
+    if (!links.some((link) => canonicalLink(link.value) === canonicalLink(value))) {
+      links.push({
+        value,
+        type: detectLinkType(value),
+        confidence: "high",
+        lineNumber: 1,
+      });
+    }
+  });
+
   const textOnlyLines = lines.filter(
     (line) => !consumed.has(line.lineNumber) && !/[|•]/.test(line.text)
   );
@@ -259,15 +349,17 @@ const parseContact = (lines: SourceLine[]) => {
     : null;
   if (nameLine) consumed.add(nameLine.lineNumber);
 
-  const locationLine = lines.find((line) => {
-    if (consumed.has(line.lineNumber)) return false;
-    const words = line.text.trim().split(/\s+/);
-    return words.length <= 7 && /,/.test(line.text) && !/\d{4}/.test(line.text);
-  });
-  const location = locationLine
-    ? { value: locationLine.text.trim(), confidence: "low" as const, lineNumber: locationLine.lineNumber }
+  const locationSegment = lines.flatMap(splitContactSegments).find((segment) =>
+    isLocationCandidate(segment.text)
+  );
+  const location = locationSegment
+    ? {
+        value: locationSegment.text.replace(LOCATION_LABEL_PATTERN, "").trim(),
+        confidence: "medium" as const,
+        lineNumber: locationSegment.lineNumber,
+      }
     : null;
-  if (locationLine) consumed.add(locationLine.lineNumber);
+  if (locationSegment) consumed.add(locationSegment.lineNumber);
 
   const headlineLine = lines.find((line) => {
     if (consumed.has(line.lineNumber)) return false;
@@ -282,7 +374,7 @@ const parseContact = (lines: SourceLine[]) => {
   return { fullName, headline, email, phone, location, links, consumed };
 };
 
-export const parseResumeText = (originalText: string): ParsedResume => {
+export const parseResumeText = (originalText: string, embeddedLinks: string[] = []): ParsedResume => {
   const sourceLines: SourceLine[] = originalText
     .replace(/\r\n?/g, "\n")
     .split("\n")
@@ -291,7 +383,7 @@ export const parseResumeText = (originalText: string): ParsedResume => {
 
   const firstHeadingIndex = sourceLines.findIndex((line) => Boolean(getSectionType(line.text)));
   const headerLines = firstHeadingIndex === -1 ? sourceLines : sourceLines.slice(0, firstHeadingIndex);
-  const contact = parseContact(headerLines);
+  const contact = parseContact(headerLines, embeddedLinks);
   const sections = createSectionRecord();
   const unrecognized: UnrecognizedResumeContent[] = [];
   const needsReview: ParserReviewItem[] = [];
@@ -328,14 +420,16 @@ export const parseResumeText = (originalText: string): ParsedResume => {
         });
       }
 
-      sections[block.sectionType].push({
-        type: block.sectionType,
-        heading: block.heading.text,
-        headingLineNumber: block.heading.lineNumber,
-        content,
-        lines: block.lines.map((line) => line.text),
-        dateRanges: detectDateRanges(block.lines),
-        confidence: "high",
+      splitSectionEntries(block.sectionType, block.lines).forEach((entryLines) => {
+        sections[block.sectionType!].push({
+          type: block.sectionType!,
+          heading: block.heading.text,
+          headingLineNumber: block.heading.lineNumber,
+          content: entryLines.map((line) => line.text).join("\n").trim(),
+          lines: entryLines.map((line) => line.text),
+          dateRanges: detectDateRanges(entryLines),
+          confidence: "high",
+        });
       });
       return;
     }

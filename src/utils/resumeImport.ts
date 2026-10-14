@@ -158,6 +158,91 @@ const splitPrimaryLine = (line = ""): [string, string] => {
   return [primary?.trim() ?? "", rest.join(" | ").trim()];
 };
 
+const BULLET_PATTERN = /^(?:[-*•▪◦‣]|\d+[.)])\s*/;
+const JOB_TITLE_PATTERN = /\b(?:engineer|developer|architect|manager|lead|director|consultant|analyst|specialist|intern|administrator|designer|scientist|officer|associate|president|founder)\b/i;
+const LOCATION_MODE_PATTERN = /(?:\s*[|·-]\s*)?(Remote|Hybrid|On[ -]?site)$/i;
+const LOCATION_WITH_SEPARATOR_PATTERN = /\s*[|·]\s*([^|·]+(?:,\s*[^|·]+){1,2})$/u;
+const LOCATION_SUFFIX_PATTERN = /([\p{L}.'-]+(?:\s+[\p{L}.'-]+){0,2}(?:,\s*[\p{L}.'-]+(?:\s+[\p{L}.'-]+){0,3}){1,2})$/u;
+
+const stripReviewedDates = (line: string, ranges: ImportReviewDateRange[]): string => {
+  let result = line;
+  ranges.forEach((range) => {
+    const endPattern = range.isCurrent ? "(?:Present|Current|Now)" : escapeRegExp(range.end);
+    result = result.replace(
+      new RegExp(`${escapeRegExp(range.start)}\\s*(?:-|–|—|to)\\s*${endPattern}`, "i"),
+      ""
+    );
+  });
+  return result.replace(/^[\s|·,:–—-]+|[\s|·,:–—-]+$/g, "").replace(/\s{2,}/g, " ").trim();
+};
+
+const escapeRegExp = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const extractLocationSuffix = (line: string): { text: string; location: string } => {
+  const modeMatch = line.match(LOCATION_MODE_PATTERN);
+  if (modeMatch && modeMatch.index !== undefined) {
+    return {
+      text: line.slice(0, modeMatch.index).replace(/[\s|·,-]+$/g, "").trim(),
+      location: modeMatch[1].trim(),
+    };
+  }
+
+  const separatedMatch = line.match(LOCATION_WITH_SEPARATOR_PATTERN);
+  if (separatedMatch && separatedMatch.index !== undefined) {
+    return {
+      text: line.slice(0, separatedMatch.index).trim(),
+      location: separatedMatch[1].trim(),
+    };
+  }
+
+  const commaIndex = line.indexOf(",");
+  if (commaIndex > 0 && JOB_TITLE_PATTERN.test(line.slice(0, commaIndex))) {
+    const beforeComma = line.slice(0, commaIndex).trim();
+    const afterComma = line.slice(commaIndex + 1).trim();
+    const titleMatches = Array.from(beforeComma.matchAll(new RegExp(JOB_TITLE_PATTERN.source, "gi")));
+    const lastTitleMatch = titleMatches[titleMatches.length - 1];
+    if (lastTitleMatch?.index !== undefined) {
+      const titleEnd = lastTitleMatch.index + lastTitleMatch[0].length;
+      let title = beforeComma.slice(0, titleEnd).trim();
+      let city = beforeComma.slice(titleEnd).trim();
+      const levelMatch = city.match(/^(?:I{1,4}|IV|V|[1-5])\b\s*/i);
+      if (levelMatch) {
+        title = `${title} ${levelMatch[0].trim()}`;
+        city = city.slice(levelMatch[0].length).trim();
+      }
+      if (city) return { text: title, location: `${city}, ${afterComma}` };
+    }
+  }
+
+  const match = line.match(LOCATION_SUFFIX_PATTERN);
+  if (!match || match.index === undefined) return { text: line.trim(), location: "" };
+  const location = match[1].trim();
+  const text = line.slice(0, match.index).replace(/[\s|·,-]+$/g, "").trim();
+  return { text, location };
+};
+
+const parseEntryLines = (content: string, ranges: ImportReviewDateRange[]) => {
+  const sourceLines = content.split("\n").map((line) => line.trim()).filter(Boolean);
+  const headerLines: string[] = [];
+  const points: string[] = [];
+
+  sourceLines.forEach((sourceLine) => {
+    const hasBullet = BULLET_PATTERN.test(sourceLine);
+    const cleaned = stripReviewedDates(sourceLine.replace(BULLET_PATTERN, ""), ranges);
+    if (!cleaned) return;
+    if (hasBullet) {
+      points.push(cleaned);
+    } else if (points.length) {
+      points[points.length - 1] = `${points[points.length - 1]} ${cleaned}`.replace(/\s{2,}/g, " ");
+    } else {
+      headerLines.push(cleaned);
+    }
+  });
+
+  return { headerLines, points };
+};
+
 const getIncludedSections = (
   draft: ImportReviewDraft,
   type: ResumeSectionType
@@ -166,18 +251,34 @@ const getIncludedSections = (
 
 const createWorkDetails = (draft: ImportReviewDraft): WorkExpDetail[] =>
   getIncludedSections(draft, "experience").map((section, index) => {
-    const lines = withoutDateLines(cleanLines(section.content), section.dateRanges);
-    const [title, companyName] = splitPrimaryLine(lines[0]);
+    const { headerLines, points } = parseEntryLines(section.content, section.dateRanges);
+    let location = "";
+    const headers = headerLines.map((line) => {
+      const extracted = extractLocationSuffix(line);
+      if (!location && extracted.location) location = extracted.location;
+      return extracted.text;
+    }).filter(Boolean);
+    const delimitedHeader = headers.find((line) => /[|·]/.test(line));
+    let title = "";
+    let companyName = "";
+    if (delimitedHeader) {
+      [title, companyName] = splitPrimaryLine(delimitedHeader);
+    } else {
+      const titleIndex = headers.findIndex((line) => JOB_TITLE_PATTERN.test(line));
+      title = titleIndex >= 0 ? headers[titleIndex] : headers[0] ?? "";
+      companyName = headers.find((_, headerIndex) => headerIndex !== titleIndex) ?? "";
+    }
     const dateRange = section.dateRanges[0];
 
     return {
       id: `import-work-${index}`,
       title,
       companyName,
+      location,
       startDate: dateRange?.start,
       endDate: dateRange?.isCurrent ? "Present" : dateRange?.end,
       currentRole: Boolean(dateRange?.isCurrent),
-      points: lines.slice(1),
+      points,
     };
   });
 

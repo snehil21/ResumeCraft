@@ -26,6 +26,7 @@ export interface ResumeTextExtraction {
   text: string;
   wordCount: number;
   characterCount: number;
+  links: string[];
   pageCount?: number;
   warnings: string[];
 }
@@ -54,7 +55,7 @@ const createExtractionResult = (
   source: ResumeTextSource,
   text: string,
   fileName: string | null,
-  options: { pageCount?: number; warnings?: string[] } = {}
+  options: { pageCount?: number; warnings?: string[]; links?: string[] } = {}
 ): ResumeTextExtraction => {
   const normalizedText = normalizeExtractedText(text);
 
@@ -64,9 +65,36 @@ const createExtractionResult = (
     text: normalizedText,
     wordCount: normalizedText ? normalizedText.split(/\s+/).length : 0,
     characterCount: normalizedText.length,
+    links: options.links ?? [],
     pageCount: options.pageCount,
     warnings: options.warnings ?? [],
   };
+};
+
+const normalizeEmbeddedLink = (value: string): string | null => {
+  const link = value.trim();
+  if (/^(?:https?:\/\/|mailto:|tel:)/i.test(link)) return link;
+  if (/^(?:www\.)?[a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s]*)?$/i.test(link)) return link;
+  return null;
+};
+
+const uniqueLinks = (links: string[]): string[] =>
+  Array.from(new Set(links.map(normalizeEmbeddedLink).filter((link): link is string => Boolean(link))));
+
+const extractLinksFromHtml = (html: string): string[] => {
+  const links: string[] = [];
+  const hrefPattern = /<a\b[^>]*\bhref=(?:"([^"]*)"|'([^']*)')[^>]*>/gi;
+  let match = hrefPattern.exec(html);
+  while (match) {
+    links.push(
+      (match[1] || match[2] || "")
+        .replace(/&amp;/gi, "&")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+    );
+    match = hrefPattern.exec(html);
+  }
+  return uniqueLinks(links);
 };
 
 const extractPdfText = async (file: File): Promise<ResumeTextExtraction> => {
@@ -90,10 +118,14 @@ const extractPdfText = async (file: File): Promise<ResumeTextExtraction> => {
   try {
     const pdf = await Promise.race([loadingTask.promise, passwordRequest]);
     const pages: string[] = [];
+    const embeddedLinks: string[] = [];
 
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
       const page = await pdf.getPage(pageNumber);
-      const content = await page.getTextContent();
+      const [content, annotations] = await Promise.all([
+        page.getTextContent(),
+        page.getAnnotations({ intent: "display" }),
+      ]);
       let pageText = "";
 
       content.items.forEach((item) => {
@@ -102,12 +134,22 @@ const extractPdfText = async (file: File): Promise<ResumeTextExtraction> => {
         pageText += item.hasEOL ? "\n" : " ";
       });
 
+      annotations.forEach((annotation) => {
+        const candidate = "url" in annotation && typeof annotation.url === "string"
+          ? annotation.url
+          : "unsafeUrl" in annotation && typeof annotation.unsafeUrl === "string"
+            ? annotation.unsafeUrl
+            : "";
+        if (candidate) embeddedLinks.push(candidate);
+      });
+
       pages.push(pageText.trim());
       page.cleanup();
     }
 
     const result = createExtractionResult("pdf", pages.join("\n\n"), file.name, {
       pageCount: pdf.numPages,
+      links: uniqueLinks(embeddedLinks),
     });
     await loadingTask.destroy();
 
@@ -151,11 +193,14 @@ const extractPdfText = async (file: File): Promise<ResumeTextExtraction> => {
 
 const extractDocxText = async (file: File): Promise<ResumeTextExtraction> => {
   try {
-    const result = await mammoth.extractRawText({
-      arrayBuffer: await file.arrayBuffer(),
-    });
+    const arrayBuffer = await file.arrayBuffer();
+    const [result, htmlResult] = await Promise.all([
+      mammoth.extractRawText({ arrayBuffer: arrayBuffer.slice(0) }),
+      mammoth.convertToHtml({ arrayBuffer: arrayBuffer.slice(0) }),
+    ]);
     const extraction = createExtractionResult("docx", result.value, file.name, {
-      warnings: result.messages.map((message) => message.message),
+      warnings: [...result.messages, ...htmlResult.messages].map((message) => message.message),
+      links: extractLinksFromHtml(htmlResult.value),
     });
 
     if (!extraction.text) {
