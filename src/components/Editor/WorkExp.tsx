@@ -32,6 +32,18 @@ const WorkExp: FC<WorkExpProps> = ({ values, setValues }) => {
         />
       </div>
       <div className={styles.row}>
+        <label className={styles.selectControl}>
+          <span>Employment type</span>
+          <select value={values.employmentType || ""} onChange={(event) => setValues((prev) => ({ ...prev, employmentType: event.target.value }))}>
+            <option value="">Select type</option>
+            <option>Full-time</option>
+            <option>Part-time</option>
+            <option>Contract</option>
+            <option>Internship</option>
+            <option>Freelance</option>
+            <option>Apprenticeship</option>
+          </select>
+        </label>
         <InputControl
           label="Location"
           placeholder="Enter location eg. Remote"
@@ -41,6 +53,7 @@ const WorkExp: FC<WorkExpProps> = ({ values, setValues }) => {
           }
         />
       </div>
+      <InputControl label="Company URL" type="url" value={values.website || ""} placeholder="https://company.example" onChange={(event) => setValues((prev) => ({ ...prev, website: event.target.value }))} />
       <div className={styles.row}>
         <MonthYearControl
           label="Start Date"

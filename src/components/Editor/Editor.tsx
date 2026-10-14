@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useState } from "react";
-import { ArrowDown, ArrowUp, Copy, Edit2, MoreHorizontal, Plus, Settings, Trash2 } from "react-feather";
+import { ArrowDown, ArrowUp, Copy, Edit2, Eye, EyeOff, MoreHorizontal, Plus, Settings, Trash2 } from "react-feather";
 
 import InputControl from "../InputControl/InputControl";
 import BasicInfo from "./BasicInfo";
@@ -10,10 +10,17 @@ import Summary from "./Summary";
 import Other from "./Other";
 import SectionManager from "./SectionManager";
 import GenericSectionEditor from "./GenericSectionEditor";
+import StructuredSectionEditor from "./StructuredSectionEditor";
 
 import styles from "./Editor.module.css";
 import { useResumeStore } from "../../store";
-import { SECTIONS, SECTION_LABELS } from "../../constants";
+import {
+  ADDITIONAL_SECTION_KEYS,
+  CORE_SECTION_KEYS,
+  SECTIONS,
+  SECTION_LABELS,
+  STRUCTURED_SECTION_DEFINITIONS,
+} from "../../constants";
 import { extractFormValuesFromSection, buildDetailForSection } from "../../utils/formHelpers";
 import { FormValues } from "../../types";
 
@@ -34,6 +41,7 @@ const Editor: FC<EditorProps> = ({ sections }) => {
     currentFormValues,
     setCurrentFormValues,
     updateResumeSection,
+    setSectionVisibility,
     addDetail,
     deleteDetail,
     moveDetail,
@@ -91,9 +99,12 @@ const Editor: FC<EditorProps> = ({ sections }) => {
     if (
       activeSectionKey === SECTIONS.workExp ||
       activeSectionKey === SECTIONS.project ||
-      activeSectionKey === SECTIONS.education
+      activeSectionKey === SECTIONS.education ||
+      activeSection?.kind === "entries"
     ) {
-      const detail = buildDetailForSection(activeSectionKey, values);
+      const detail = activeSection?.kind === "entries"
+        ? { ...values }
+        : buildDetailForSection(activeSectionKey, values);
       const updatedDetails = [...(activeSection?.details || [])];
       const existingId = updatedDetails[activeDetailIndex]?.id;
       updatedDetails[activeDetailIndex] = {
@@ -103,14 +114,6 @@ const Editor: FC<EditorProps> = ({ sections }) => {
 
       updateResumeSection(activeSectionKey, {
         details: updatedDetails,
-        sectionTitle,
-      });
-      return;
-    }
-
-    if (activeSectionKey === SECTIONS.achievement) {
-      updateResumeSection(activeSectionKey, {
-        points: values.points,
         sectionTitle,
       });
       return;
@@ -162,7 +165,7 @@ const Editor: FC<EditorProps> = ({ sections }) => {
           />
         );
       case SECTIONS.achievement:
-        return <GenericSectionEditor sectionKey={activeSectionKey} />;
+        return <StructuredSectionEditor sectionKey={activeSectionKey} values={currentFormValues} setValues={setValues} />;
       case SECTIONS.summary:
         return (
           <Summary
@@ -175,6 +178,9 @@ const Editor: FC<EditorProps> = ({ sections }) => {
           <Other values={currentFormValues} setValues={setValues} />
         );
       default:
+        if (activeSection?.kind === "entries") {
+          return <StructuredSectionEditor sectionKey={activeSectionKey} values={currentFormValues} setValues={setValues} />;
+        }
         return activeSection?.kind === "list" || activeSection?.kind === "text"
           ? <GenericSectionEditor sectionKey={activeSectionKey} />
           : null;
@@ -196,13 +202,13 @@ const Editor: FC<EditorProps> = ({ sections }) => {
     ),
   ];
 
-  const entryNoun = activeSectionKey === SECTIONS.workExp
+  const entryNoun = STRUCTURED_SECTION_DEFINITIONS[activeSectionKey]?.noun || (activeSectionKey === SECTIONS.workExp
     ? "experience"
     : activeSectionKey === SECTIONS.project
       ? "project"
       : activeSectionKey === SECTIONS.education
         ? "education"
-        : "entry";
+        : "entry");
 
   const entryPresentation = (item: any, index: number) => {
     const primary = item.title?.trim() || `Untitled ${entryNoun}`;
@@ -212,26 +218,48 @@ const Editor: FC<EditorProps> = ({ sections }) => {
         ? item.college?.trim()
         : activeSectionKey === SECTIONS.project
           ? item.overview?.trim()
-          : item.subtitle?.trim();
+          : (item.subtitle || item.issuer || item.organization || item.publisher || item.provider || item.proficiency)?.trim();
     return { primary, secondary: secondary || `${sectionTitle} ${index + 1}` };
   };
+
+  const availableKeys = sectionKeys.filter((key) => document.resumeInformation[key]);
+  const profileKeys = [SECTIONS.basicInfo, SECTIONS.summary].filter((key) => availableKeys.includes(key));
+  const coreKeys = CORE_SECTION_KEYS.filter((key) => availableKeys.includes(key));
+  const additionalKeys = ADDITIONAL_SECTION_KEYS.filter((key) => availableKeys.includes(key));
+  const knownKeys = new Set([...profileKeys, ...coreKeys, ...additionalKeys]);
+  const customKeys = availableKeys.filter((key) => !knownKeys.has(key));
+  const optionLabel = (key: string) => {
+    const section = document.resumeInformation[key];
+    const count = section.details?.filter((item) => Object.entries(item).some(([field, value]) => field !== "id" && String(value ?? "").trim())).length;
+    const suffix = section.visible === false ? " — hidden" : typeof count === "number" && count > 0 ? ` — ${count}` : "";
+    return `${section.sectionTitle || sections[key as keyof typeof sections] || "Section"}${suffix}`;
+  };
+  const renderOptions = (keys: string[]) => keys.map((key) => <option key={key} value={key}>{optionLabel(key)}</option>);
+  const sectionDefinition = STRUCTURED_SECTION_DEFINITIONS[activeSectionKey];
+  const entryCount = activeSection?.details?.filter((item) => Object.entries(item).some(([field, value]) => field !== "id" && String(value ?? "").trim())).length ?? 0;
 
   return (
     <div className={styles.container}>
       <div className={styles.editorToolbar}>
-        <label className={styles.sectionSelect}>
-          <span>Resume section</span>
-          <select value={activeSectionKey} onChange={(event) => setActiveSectionKey(event.target.value)}>
-            {sectionKeys.map((key) => (
-              <option key={key} value={key}>
-                {document.resumeInformation[key]?.sectionTitle || sections[key as keyof typeof sections] || "Section"}
-              </option>
-            ))}
+        <div className={styles.sectionSelect}>
+          <label htmlFor="resume-section-select">Resume section</label>
+          <select id="resume-section-select" aria-describedby="resume-section-description" value={activeSectionKey} onChange={(event) => setActiveSectionKey(event.target.value)}>
+            <optgroup label="Profile">{renderOptions(profileKeys)}</optgroup>
+            <optgroup label="Career">{renderOptions(coreKeys)}</optgroup>
+            <optgroup label="Additional">{renderOptions(additionalKeys)}</optgroup>
+            {customKeys.length ? <optgroup label="Custom">{renderOptions(customKeys)}</optgroup> : null}
           </select>
-        </label>
-        <button type="button" className={styles.manageButton} onClick={() => setIsSectionManagerOpen(true)}>
-          <Settings aria-hidden="true" /> Manage sections
-        </button>
+          <small id="resume-section-description">{sectionDefinition?.description || (activeSection?.visible === false ? "This section is hidden from the resume." : "Choose a section to edit its content.")}</small>
+        </div>
+        <div className={styles.toolbarActions}>
+          {activeSectionKey !== SECTIONS.basicInfo ? <button type="button" className={styles.visibilityButton} onClick={() => setSectionVisibility(activeSectionKey, !activeSection?.visible)} aria-pressed={activeSection?.visible === false}>
+            {activeSection?.visible === false ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+            {activeSection?.visible === false ? "Hidden" : "Shown"}
+          </button> : null}
+          <button type="button" className={styles.manageButton} onClick={() => setIsSectionManagerOpen(true)}>
+            <Settings aria-hidden="true" /> Manage
+          </button>
+        </div>
       </div>
 
       <div className={styles.body}>
@@ -239,6 +267,7 @@ const Editor: FC<EditorProps> = ({ sections }) => {
           <div>
             <p>Editing section</p>
             <h2>{sectionTitle}</h2>
+            {activeSection?.details ? <span className={styles.entryCount}>{entryCount} {entryCount === 1 ? entryNoun : `${entryNoun}s`}</span> : null}
           </div>
           <button type="button" className={styles.renameButton} onClick={() => setIsRenamingSection((isOpen) => !isOpen)} aria-expanded={isRenamingSection}>
             <Edit2 aria-hidden="true" /> Rename

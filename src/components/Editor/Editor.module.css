@@ -25,6 +25,19 @@
   font-weight: 800;
 }
 
+.sectionSelect > label {
+  color: inherit;
+  font: inherit;
+}
+
+.sectionSelect small {
+  min-height: 1.35em;
+  color: #82776f;
+  font-size: 0.65rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
 .sectionSelect select {
   width: 100%;
   min-height: 42px;
@@ -40,6 +53,7 @@
 }
 
 .manageButton,
+.visibilityButton,
 .renameButton,
 .addEntry,
 .entryMenuButton,
@@ -62,7 +76,33 @@
   font-weight: 780;
 }
 
+.toolbarActions {
+  display: flex;
+  gap: 7px;
+}
+
+.visibilityButton {
+  min-height: 42px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #d5cbc2;
+  border-radius: 8px;
+  background: #fff;
+  color: #5d544d;
+  font-size: 0.7rem;
+  font-weight: 760;
+}
+
+.visibilityButton[aria-pressed="true"] {
+  border-color: #d6a58c;
+  background: #fff4ed;
+  color: #974321;
+}
+
 .manageButton svg,
+.visibilityButton svg,
 .renameButton svg,
 .addEntry svg {
   width: 15px;
@@ -98,6 +138,14 @@
   font-family: Georgia, "Times New Roman", serif;
   font-size: 1.45rem;
   line-height: 1.15;
+}
+
+.entryCount {
+  display: inline-block;
+  margin-top: 6px;
+  color: #786e66;
+  font-size: 0.67rem;
+  font-weight: 650;
 }
 
 .renameButton {
@@ -328,6 +376,32 @@
   width: auto;
 }
 
+.selectControl {
+  display: grid;
+  gap: 7px;
+  color: #544c45;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.selectControl select {
+  width: 100%;
+  min-height: 41px;
+  padding: 0 38px 0 11px;
+  border: 1px solid #cfc7bf;
+  border-radius: 8px;
+  background: #fff;
+  color: #38322e;
+  font: inherit;
+  font-weight: 450;
+}
+
+.selectControl select:focus-visible,
+.visibilityButton:focus-visible {
+  outline: 3px solid rgba(183, 80, 36, 0.25);
+  outline-offset: 2px;
+}
+
 @media (max-width: 600px) {
   .editorToolbar {
     grid-template-columns: 1fr;
@@ -335,6 +409,11 @@
 
   .manageButton {
     justify-content: center;
+  }
+
+  .toolbarActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
   .body {

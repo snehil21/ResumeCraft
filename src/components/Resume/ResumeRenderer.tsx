@@ -28,10 +28,12 @@ const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
     const useColumns = templateOption.supportsColumns && layout.mode === "two";
     const date = (value?: string) => formatResumeDate(value, theme.dateFormat);
 
-    const dateRange = (item: any): ReactNode => {
+    const dateRange = (item: any, sectionKey?: string): ReactNode => {
       if (!item.startDate && !item.endDate && !item.currentRole) return null;
       const start = date(item.startDate);
-      const end = item.currentRole ? "Present" : date(item.endDate);
+      const end = item.currentRole
+        ? sectionKey === SECTIONS.certifications ? "No expiration" : "Present"
+        : date(item.endDate);
       return <span className={styles.date}><Calendar /> {[start, end].filter(Boolean).join(" – ")}</span>;
     };
 
@@ -40,16 +42,20 @@ const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
       return nonEmpty.length ? <ul className={styles.points}>{nonEmpty.map((point, index) => <li key={`${point}-${index}`}>{point}</li>)}</ul> : null;
     };
 
-    const renderEntry = (item: any): ReactNode => {
-      const subtitle = item.companyName || item.college || item.subtitle;
+    const renderEntry = (item: any, sectionKey: string): ReactNode => {
+      const subtitle = item.companyName || item.college || item.subtitle || item.issuer || item.organization || item.publisher || item.provider;
       return <article className={styles.item} key={item.id}>
         <div className={styles.itemHeader}>
           <p className={styles.itemTitle}>{item.title}</p>
-          {dateRange(item)}
+          {dateRange(item, sectionKey)}
           {subtitle ? <p className={styles.itemSubtitle}>{subtitle}</p> : null}
           {item.location ? <p className={`${styles.meta} ${styles.itemLocation}`}><MapPin /> {item.location}</p> : null}
         </div>
         {item.grade ? <p className={styles.meta}>{item.grade}</p> : null}
+        {item.fieldOfStudy ? <p className={styles.meta}>{item.fieldOfStudy}</p> : null}
+        {item.employmentType ? <p className={styles.meta}>{item.employmentType}</p> : null}
+        {item.proficiency ? <p className={styles.meta}>{item.proficiency}</p> : null}
+        {item.credentialId ? <p className={styles.meta}>Credential ID: {item.credentialId}</p> : null}
         {item.overview ? <p className={styles.paragraph}>{item.overview}</p> : null}
         <div className={styles.entryLinks}>
           {item.link ? <a href={getExternalHref(item.link)}><Paperclip /> {item.link}</a> : null}
@@ -70,7 +76,7 @@ const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
           {typeof section.detail === "string" && section.detail.trim()
             ? <p className={styles.paragraph}>{section.detail}</p>
             : null}
-          {section.details?.map((item) => renderEntry(item))}
+          {section.details?.map((item) => renderEntry(item, sectionKey))}
           {points(section.points)}
         </div>
       </section>;

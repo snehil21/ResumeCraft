@@ -31,6 +31,7 @@ const Project: FC<ProjectProps> = ({ values, setValues }) => {
           setValues((prev) => ({ ...prev, overview: event.target.value }))
         }
       />
+      <InputControl label="Technologies" value={values.subtitle || ""} placeholder="e.g. React, TypeScript, AWS" onChange={(event) => setValues((prev) => ({ ...prev, subtitle: event.target.value }))} />
       <div className={styles.row}>
         <InputControl
           label="Deployed Link"
