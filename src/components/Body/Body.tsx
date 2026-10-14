@@ -273,10 +273,15 @@ const Body: FC = () => {
         </section>
 
         <aside className={`${styles.previewPanel} ${mobilePane === "edit" ? styles.mobileHidden : ""}`}>
-          <div className={styles.previewHeader}><div><p>Live preview</p><h2>{templateName}</h2></div><span>{document.page.size} · {previewMetrics.pageCount} {previewMetrics.pageCount === 1 ? "page" : "pages"}</span></div>
-          <div className={`${styles.paginationStatus} ${previewMetrics.pageCount > 1 ? styles.overflowWarning : styles.pageFit}`} role="status">
-            {previewMetrics.pageCount > 1 ? <AlertCircle /> : <CheckCircle />}
-            <span><strong>{previewMetrics.pageCount > 1 ? "Page overflow detected" : "Fits on one page"}</strong><small>{previewMetrics.pageCount > 1 ? `The PDF will use ${previewMetrics.pageCount} pages. Dashed lines show page boundaries; entries stay together when possible.` : "The preview and exported PDF use the same physical page size."}</small></span>
+          <div className={styles.previewHeader}>
+            <div><p>Live preview</p><h2>{templateName}</h2></div>
+            <span
+              className={`${styles.previewPageStatus} ${previewMetrics.pageCount > 1 ? styles.previewPageOverflow : styles.previewPageFit}`}
+              role="status"
+              aria-label={`${document.page.size}, ${previewMetrics.pageCount} ${previewMetrics.pageCount === 1 ? "page" : "pages"}`}
+            >
+              {document.page.size} · {previewMetrics.pageCount} {previewMetrics.pageCount === 1 ? "page" : "pages"}
+            </span>
           </div>
           <div className={styles.previewViewport} ref={previewViewportRef}>
             <div
