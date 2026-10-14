@@ -3,6 +3,8 @@ import { Menu, X } from "react-feather";
 import { Link, useLocation } from "react-router-dom";
 
 import transparentLogo from "../../assets/transparent-logo.svg";
+import { useResumeStore } from "../../store";
+import { isResumeDocumentEmpty } from "../../utils/resumeDocument";
 
 import styles from "./Navbar.module.css";
 
@@ -16,6 +18,12 @@ const Navbar: FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");
   const location = useLocation();
+  const resumeDocument = useResumeStore((state) => state.document);
+  const isStartPage = location.pathname === "/start";
+  const hasCurrentDraft = !isResumeDocumentEmpty(resumeDocument);
+  const showPrimaryAction = !isStartPage || hasCurrentDraft;
+  const primaryActionTo = isStartPage ? "/resumebuilder" : "/start?mode=create";
+  const primaryActionLabel = isStartPage ? "Open current draft" : "Build my resume";
 
   useEffect(() => {
     setIsMenuOpen(false);
@@ -92,9 +100,11 @@ const Navbar: FC = () => {
             </a>
           </div>
 
-          <Link className={styles.primaryAction} to="/start?mode=create">
-            Build my resume
-          </Link>
+          {showPrimaryAction ? (
+            <Link className={styles.primaryAction} to={primaryActionTo}>
+              {primaryActionLabel}
+            </Link>
+          ) : null}
         </div>
 
         <button
@@ -133,13 +143,15 @@ const Navbar: FC = () => {
           >
             GitHub
           </a>
-          <Link
-            className={styles.mobilePrimaryAction}
-            to="/start?mode=create"
-            tabIndex={isMenuOpen ? 0 : -1}
-          >
-            Build my resume
-          </Link>
+          {showPrimaryAction ? (
+            <Link
+              className={styles.mobilePrimaryAction}
+              to={primaryActionTo}
+              tabIndex={isMenuOpen ? 0 : -1}
+            >
+              {primaryActionLabel}
+            </Link>
+          ) : null}
         </div>
       </nav>
     </header>
