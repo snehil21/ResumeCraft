@@ -183,7 +183,11 @@ const Editor: FC<EditorProps> = ({ sections }) => {
               activeSectionKey === key ? styles.active : ""
             }`}
             key={key}
-            onClick={() => setActiveSectionKey(key)}
+            onClick={(event) => {
+              event.preventDefault();
+              setActiveSectionKey(key);
+              event.currentTarget.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+            }}
           >
             {document.resumeInformation[key]?.sectionTitle || sections[key as keyof typeof sections] || "Section"}
           </button>

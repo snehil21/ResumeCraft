@@ -37,6 +37,7 @@ export interface ParsedResumeSection {
   content: string;
   lines: string[];
   dateRanges: DetectedDateRange[];
+  links: DetectedLink[];
   confidence: ParserConfidence;
 }
 
@@ -129,7 +130,7 @@ const ALIAS_TO_SECTION = new Map<string, ResumeSectionType>(
 
 const EMAIL_PATTERN = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
 const PHONE_PATTERN = /\+?\d[\d\s().-]{5,}\d/;
-const URL_PATTERN = /(?:https?:\/\/|www\.)[^\s|,;]+|\b(?:linkedin\.com\/in|github\.com)\/[^\s|,;]+/gi;
+const URL_PATTERN = /(?:https?:\/\/|www\.)[^\s|,;]+|\b(?:linkedin\.com\/in|github\.com)\/[^\s|,;]+|(?<![@\w])(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/[^\s|,;]*)?/gi;
 const MONTH = "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)";
 const DATE_TOKEN = `(?:${MONTH}\\s+)?(?:19|20)\\d{2}|(?:0?[1-9]|1[0-2])[/.](?:19|20)\\d{2}`;
 const DATE_RANGE_PATTERN = new RegExp(
@@ -148,6 +149,10 @@ interface ContentBlock {
   sectionType?: ResumeSectionType;
   lines: SourceLine[];
 }
+
+const BULLET_PATTERN = /^(?:[-*•▪◦‣]|\d+[.)])\s+/;
+const LOCATION_LABEL_PATTERN = /^(?:location|based in)\s*:\s*/i;
+const KNOWN_CITY_PATTERN = /\b(?:Bengaluru|Bangalore|Hyderabad|Pune|Mumbai|Chennai|Kolkata|Noida|Gurugram|Gurgaon|Ahmedabad|New Delhi|Delhi|London|Dublin|Toronto|Vancouver|Singapore|Sydney|Melbourne|Dubai|Berlin|Paris|Amsterdam|New York|San Francisco|Seattle|Austin|Boston|Chicago)\b/i;
 
 const normalizeHeading = (line: string): string =>
   line
@@ -205,6 +210,101 @@ const detectLinkType = (value: string): DetectedLink["type"] => {
   return "other";
 };
 
+const normalizeDetectedLink = (value: string): string =>
+  value
+    .trim()
+    .replace(/^mailto:/i, "")
+    .replace(/^tel:/i, "")
+    .replace(/[.)]+$/, "");
+
+const canonicalLink = (value: string): string =>
+  normalizeDetectedLink(value)
+    .replace(/^https?:\/\//i, "")
+    .replace(/^www\./i, "")
+    .replace(/\/$/, "")
+    .toLowerCase();
+
+const detectLinks = (lines: SourceLine[]): DetectedLink[] => {
+  const links: DetectedLink[] = [];
+  lines.forEach((line) => {
+    URL_PATTERN.lastIndex = 0;
+    Array.from(line.text.matchAll(URL_PATTERN), (match) => match[0]).forEach((rawValue) => {
+      const value = normalizeDetectedLink(rawValue);
+      if (!links.some((link) => canonicalLink(link.value) === canonicalLink(value))) {
+        links.push({ value, type: detectLinkType(value), confidence: "high", lineNumber: line.lineNumber });
+      }
+    });
+  });
+  return links;
+};
+
+const isLocationCandidate = (value: string): boolean => {
+  const candidate = value.trim().replace(LOCATION_LABEL_PATTERN, "");
+  const words = candidate.split(/\s+/);
+  if (!candidate || words.length > 8 || /@|https?:|www\.|\d{4}/i.test(candidate)) return false;
+  return /^(?:remote|hybrid|on[ -]?site)$/i.test(candidate) ||
+    /^[\p{L}.'-]+(?:\s+[\p{L}.'-]+){0,3}(?:,\s*[\p{L}.'-]+(?:\s+[\p{L}.'-]+){0,3}){1,2}$/u.test(candidate);
+};
+
+const splitContactSegments = (line: SourceLine): SourceLine[] =>
+  line.text
+    .split(/\s*[|•]\s*/)
+    .map((text) => ({ text: text.trim(), lineNumber: line.lineNumber }))
+    .filter((segment) => segment.text);
+
+const findLocation = (lines: SourceLine[]): SourceLine | undefined => {
+  const segments = lines.flatMap(splitContactSegments);
+  const labelled = segments.find((segment) => LOCATION_LABEL_PATTERN.test(segment.text));
+  if (labelled) return labelled;
+
+  for (const line of lines) {
+    const match = line.text.match(KNOWN_CITY_PATTERN);
+    if (!match || match.index === undefined) continue;
+    const suffix = line.text.slice(match.index).match(
+      /^[\p{L}.'-]+(?:\s+[\p{L}.'-]+){0,2}(?:,\s*[\p{L}.'-]+(?:\s+[\p{L}.'-]+){0,3}){0,2}/u
+    )?.[0];
+    return { text: suffix?.trim() || match[0], lineNumber: line.lineNumber };
+  }
+
+  return segments.find((segment) => isLocationCandidate(segment.text));
+};
+
+const stripDateRanges = (text: string): string => {
+  DATE_RANGE_PATTERN.lastIndex = 0;
+  return text
+    .replace(DATE_RANGE_PATTERN, "")
+    .replace(/^[\s|·,:–—-]+|[\s|·,:–—-]+$/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+};
+
+const splitSectionEntries = (
+  sectionType: ResumeSectionType,
+  lines: SourceLine[]
+): SourceLine[][] => {
+  if (!["experience", "education", "projects"].includes(sectionType) || lines.length < 2) {
+    return [lines];
+  }
+
+  const dateLineIndices = lines
+    .map((line, index) => (detectDateRanges([line]).length ? index : -1))
+    .filter((index) => index >= 0);
+  if (dateLineIndices.length < 2) return [lines];
+
+  const starts = [0];
+  dateLineIndices.slice(1).forEach((dateIndex) => {
+    const dateLineHasLabel = Boolean(stripDateRanges(lines[dateIndex].text));
+    const previousLine = lines[dateIndex - 1];
+    const boundary = !dateLineHasLabel && previousLine && !BULLET_PATTERN.test(previousLine.text)
+      ? dateIndex - 1
+      : dateIndex;
+    const previousStart = starts[starts.length - 1];
+    if (boundary > previousStart) starts.push(boundary);
+  });
+
+  return starts.map((start, index) => lines.slice(start, starts[index + 1] ?? lines.length));
+};
+
 const createSectionRecord = (): Record<ResumeSectionType, ParsedResumeSection[]> => ({
   summary: [],
   experience: [],
@@ -215,7 +315,7 @@ const createSectionRecord = (): Record<ResumeSectionType, ParsedResumeSection[]>
   achievements: [],
 });
 
-const parseContact = (lines: SourceLine[]) => {
+const parseContact = (lines: SourceLine[], embeddedLinks: string[]) => {
   const consumed = new Set<number>();
   const links: DetectedLink[] = [];
   let email: DetectedValue | null = null;
@@ -235,6 +335,7 @@ const parseContact = (lines: SourceLine[]) => {
       consumed.add(line.lineNumber);
     }
 
+    URL_PATTERN.lastIndex = 0;
     const matches = Array.from(line.text.matchAll(URL_PATTERN), (match) => match[0]);
     matches.forEach((match) => {
       links.push({
@@ -245,6 +346,29 @@ const parseContact = (lines: SourceLine[]) => {
       });
       consumed.add(line.lineNumber);
     });
+  });
+
+  embeddedLinks.forEach((rawLink) => {
+    const value = normalizeDetectedLink(rawLink);
+    if (/^mailto:/i.test(rawLink) || EMAIL_PATTERN.test(value)) {
+      if (!email) email = { value, confidence: "high", lineNumber: 1 };
+      return;
+    }
+    if (/^tel:/i.test(rawLink)) {
+      const digitCount = value.replace(/\D/g, "").length;
+      if (!phone && digitCount >= 7 && digitCount <= 15) {
+        phone = { value, confidence: "high", lineNumber: 1 };
+      }
+      return;
+    }
+    if (!links.some((link) => canonicalLink(link.value) === canonicalLink(value))) {
+      links.push({
+        value,
+        type: detectLinkType(value),
+        confidence: "high",
+        lineNumber: 1,
+      });
+    }
   });
 
   const textOnlyLines = lines.filter(
@@ -259,15 +383,15 @@ const parseContact = (lines: SourceLine[]) => {
     : null;
   if (nameLine) consumed.add(nameLine.lineNumber);
 
-  const locationLine = lines.find((line) => {
-    if (consumed.has(line.lineNumber)) return false;
-    const words = line.text.trim().split(/\s+/);
-    return words.length <= 7 && /,/.test(line.text) && !/\d{4}/.test(line.text);
-  });
-  const location = locationLine
-    ? { value: locationLine.text.trim(), confidence: "low" as const, lineNumber: locationLine.lineNumber }
+  const locationSegment = findLocation(lines);
+  const location = locationSegment
+    ? {
+        value: locationSegment.text.replace(LOCATION_LABEL_PATTERN, "").trim(),
+        confidence: "medium" as const,
+        lineNumber: locationSegment.lineNumber,
+      }
     : null;
-  if (locationLine) consumed.add(locationLine.lineNumber);
+  if (locationSegment) consumed.add(locationSegment.lineNumber);
 
   const headlineLine = lines.find((line) => {
     if (consumed.has(line.lineNumber)) return false;
@@ -282,7 +406,7 @@ const parseContact = (lines: SourceLine[]) => {
   return { fullName, headline, email, phone, location, links, consumed };
 };
 
-export const parseResumeText = (originalText: string): ParsedResume => {
+export const parseResumeText = (originalText: string, embeddedLinks: string[] = []): ParsedResume => {
   const sourceLines: SourceLine[] = originalText
     .replace(/\r\n?/g, "\n")
     .split("\n")
@@ -291,7 +415,7 @@ export const parseResumeText = (originalText: string): ParsedResume => {
 
   const firstHeadingIndex = sourceLines.findIndex((line) => Boolean(getSectionType(line.text)));
   const headerLines = firstHeadingIndex === -1 ? sourceLines : sourceLines.slice(0, firstHeadingIndex);
-  const contact = parseContact(headerLines);
+  const contact = parseContact(headerLines, embeddedLinks);
   const sections = createSectionRecord();
   const unrecognized: UnrecognizedResumeContent[] = [];
   const needsReview: ParserReviewItem[] = [];
@@ -328,14 +452,17 @@ export const parseResumeText = (originalText: string): ParsedResume => {
         });
       }
 
-      sections[block.sectionType].push({
-        type: block.sectionType,
-        heading: block.heading.text,
-        headingLineNumber: block.heading.lineNumber,
-        content,
-        lines: block.lines.map((line) => line.text),
-        dateRanges: detectDateRanges(block.lines),
-        confidence: "high",
+      splitSectionEntries(block.sectionType, block.lines).forEach((entryLines) => {
+        sections[block.sectionType!].push({
+          type: block.sectionType!,
+          heading: block.heading.text,
+          headingLineNumber: block.heading.lineNumber,
+          content: entryLines.map((line) => line.text).join("\n").trim(),
+          lines: entryLines.map((line) => line.text),
+          dateRanges: detectDateRanges(entryLines),
+          links: detectLinks(entryLines),
+          confidence: "high",
+        });
       });
       return;
     }

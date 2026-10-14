@@ -59,7 +59,7 @@ const ImportResume: FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [reviewDraft, setReviewDraft] = useState<ImportReviewDraft | null>(null);
   const parsedResume = useMemo(
-    () => (extraction ? parseResumeText(extraction.text) : null),
+    () => (extraction ? parseResumeText(extraction.text, extraction.links) : null),
     [extraction]
   );
 

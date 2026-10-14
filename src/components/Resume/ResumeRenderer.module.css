@@ -29,11 +29,11 @@
 .sectionContent { display: flex; flex-direction: column; gap: var(--item-gap, 12px); }
 .item { padding-bottom: var(--item-gap, 12px); display: flex; flex-direction: column; gap: calc(var(--item-gap, 12px) * .34); border-bottom: 1px solid color-mix(in srgb,var(--text-color) 18%,transparent); break-inside: avoid; }
 .item:last-child { padding-bottom: 0; border-bottom: 0; }
-.itemHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.itemHeader { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: start; column-gap: 14px; row-gap: calc(var(--item-gap, 12px) * .34); }
 .itemTitle { font-size: calc(var(--body-size) * 1.06); font-weight: 760; }.itemTitle:empty { display: none; }
 .itemSubtitle { color: var(--accent); font-weight: 720; }
 .date,.meta { display: inline-flex; align-items: center; gap: 5px; color: var(--text-color); font-size: calc(var(--body-size) * .82); opacity: .76; }
-.date { white-space: nowrap; }.paragraph { white-space: pre-wrap; overflow-wrap: anywhere; }
+.date { justify-self: end; white-space: nowrap; }.itemLocation { justify-self: end; text-align: right; }.paragraph { white-space: pre-wrap; overflow-wrap: anywhere; }
 .entryLinks { display: flex; flex-wrap: wrap; gap: 5px 14px; }.entryLinks:empty { display: none; }.entryLinks a { color: var(--accent); }
 .points { margin: 0; padding-left: 18px; }.points li+li { margin-top: calc(var(--item-gap, 12px) * .28); }
 
@@ -48,8 +48,8 @@
 .compactTechnical .identity h1 { font-weight: 820; letter-spacing: -.03em; }.compactTechnical .contacts { margin-top: 0; justify-content: flex-end; gap: 3px 11px; }.compactTechnical .sectionTitle { padding: 3px 5px; background: color-mix(in srgb,var(--accent) 11%,white); border-left: 3px solid var(--accent); font-size: var(--heading-size); letter-spacing: .04em; text-transform: uppercase; }.compactTechnical .item { border-bottom-style: dotted; }.compactTechnical .itemTitle { font-weight: 800; }
 
 @media (max-width: 768px) {
-  .itemHeader { flex-direction: column; gap: 3px; }
-  .date { white-space: normal; }
+  .itemHeader { grid-template-columns: 1fr; gap: 3px; }
+  .date,.itemLocation { justify-self: start; text-align: left; white-space: normal; }
   .compactTechnical .header { grid-template-columns: 1fr; }
   .compactTechnical .contacts { justify-content: flex-start; }
 }

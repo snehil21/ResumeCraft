@@ -42,6 +42,7 @@ const contactFields: Array<{
   { key: "location", label: "Location", placeholder: "City, Country" },
   { key: "linkedin", label: "LinkedIn", placeholder: "linkedin.com/in/username" },
   { key: "github", label: "GitHub", placeholder: "github.com/username" },
+  { key: "website", label: "Website", placeholder: "yourportfolio.com" },
   {
     key: "otherLinks",
     label: "Other links",
@@ -217,6 +218,21 @@ const ImportReview: FC<ImportReviewProps> = ({
                       }
                     />
                   </label>
+
+                  {section.links.length ? (
+                    <label>
+                      <span>Detected links (one per line)</span>
+                      <textarea
+                        value={section.links.join("\n")}
+                        disabled={!section.include}
+                        onChange={(event) =>
+                          updateSection(section.id, {
+                            links: event.target.value.split("\n").map((link) => link.trim()).filter(Boolean),
+                          })
+                        }
+                      />
+                    </label>
+                  ) : null}
 
                   {section.dateRanges.length ? (
                     <div className={styles.dateReview}>

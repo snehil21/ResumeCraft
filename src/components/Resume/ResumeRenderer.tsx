@@ -46,10 +46,10 @@ const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
         <div className={styles.itemHeader}>
           <p className={styles.itemTitle}>{item.title}</p>
           {dateRange(item)}
+          {subtitle ? <p className={styles.itemSubtitle}>{subtitle}</p> : null}
+          {item.location ? <p className={`${styles.meta} ${styles.itemLocation}`}><MapPin /> {item.location}</p> : null}
         </div>
-        {subtitle ? <p className={styles.itemSubtitle}>{subtitle}</p> : null}
         {item.grade ? <p className={styles.meta}>{item.grade}</p> : null}
-        {item.location ? <p className={styles.meta}><MapPin /> {item.location}</p> : null}
         {item.overview ? <p className={styles.paragraph}>{item.overview}</p> : null}
         <div className={styles.entryLinks}>
           {item.link ? <a href={getExternalHref(item.link)}><Paperclip /> {item.link}</a> : null}

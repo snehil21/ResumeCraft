@@ -9,8 +9,8 @@
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
   padding-top: 5px;
   overflow-y: auto;
-  cursor: pointer;
   margin: 0 auto;
+  overscroll-behavior: contain;
 }
 
 .header {
@@ -20,6 +20,11 @@
   /* height: 25px; */
   overflow-x: auto;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  flex: 0 0 auto;
+  background: #fff;
 }
 
 .header::-webkit-scrollbar {
@@ -66,6 +71,34 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
+}
+
+.summaryField {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #544c45;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.summaryField textarea {
+  width: 100%;
+  min-height: 190px;
+  resize: vertical;
+  padding: 12px;
+  border: 1px solid #cfc7bf;
+  border-radius: 6px;
+  color: inherit;
+  background: #fff;
+  font: inherit;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.summaryField textarea:focus-visible {
+  outline: 2px solid #b75024;
+  outline-offset: 1px;
 }
 
 .detail .row {

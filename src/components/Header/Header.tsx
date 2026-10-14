@@ -23,7 +23,7 @@ const Header: FC = () => {
 
           <p className={styles.description}>
             Start fresh or bring the resume you already have. Shape every
-            section, make the design yours, and download a clean PDF without
+            section, make the design yours, and save a clean PDF without
             giving up control of your data.
           </p>
 
@@ -33,7 +33,7 @@ const Header: FC = () => {
               type="button"
               onClick={() => navigate("/start?mode=create")}
             >
-              Create new resume
+              Choose how to start
               <ArrowRight aria-hidden="true" />
             </button>
 
@@ -55,7 +55,7 @@ const Header: FC = () => {
               <Check aria-hidden="true" /> No watermark
             </li>
             <li>
-              <Check aria-hidden="true" /> Free to start
+              <Check aria-hidden="true" /> Completely free
             </li>
           </ul>
         </div>

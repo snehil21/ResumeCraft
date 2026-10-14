@@ -81,3 +81,70 @@ test("keeps edited date fields when creating experience entries", () => {
   assert.equal(work.startDate, "Feb 2021");
   assert.equal(work.endDate, "Sep 2024");
 });
+
+test("creates separate work entries with company, title, location, and joined bullets", () => {
+  const source = `Jordan Example
+Professional Experience
+Amazon (via Consulting Partner)   May 2026 - Present
+Software Development Engineer I   Bengaluru, India
+• Shared Redis Caching: Built a shared caching layer using
+Spring Cache and Redisson with database fallback.
+• Deployment Pipeline Hardening: Added approval gates.
+Cimpress India   August 2024 - April 2026
+Software Development Engineer I   Remote
+• Migrated a high-throughput service to serverless.`;
+  const information = buildImportedResumeInformation(
+    createImportReviewDraft(parseResumeText(source))
+  );
+  const work = information.workExp.details as Array<{
+    title?: string;
+    companyName?: string;
+    location?: string;
+    points?: string[];
+  }>;
+
+  assert.equal(work.length, 2);
+  assert.equal(work[0].companyName, "Amazon (via Consulting Partner)");
+  assert.equal(work[0].title, "Software Development Engineer I");
+  assert.equal(work[0].location, "Bengaluru, India");
+  assert.equal(work[0].points?.length, 2);
+  assert.match(work[0].points?.[0] ?? "", /Spring Cache and Redisson/);
+  assert.equal(work[1].companyName, "Cimpress India");
+  assert.equal(work[1].location, "Remote");
+});
+
+test("maps a portfolio link to the website field", () => {
+  const review = createImportReviewDraft(
+    parseResumeText(`Jordan Example
+Backend Engineer
+jordan@example.test
+Summary
+Builds reliable systems.`, ["https://portfolio.example.test"])
+  );
+  const information = buildImportedResumeInformation(review);
+  const basic = information.basicInfo.detail as { website?: string };
+
+  assert.equal(review.contact.website, "https://portfolio.example.test");
+  assert.equal(basic.website, "https://portfolio.example.test");
+});
+
+test("maps links found in a project into project link fields", () => {
+  const information = buildImportedResumeInformation(
+    createImportReviewDraft(parseResumeText(`Jordan Example
+Projects
+ResumeCraft
+GitHub https://github.com/jordan-example/resumecraft
+Live https://resume.example.test
+2024 - Present
+- Built a local-first resume editor.`))
+  );
+  const project = information.project.details?.[0] as {
+    title?: string;
+    github?: string;
+    link?: string;
+  };
+
+  assert.equal(project.title, "ResumeCraft");
+  assert.equal(project.github, "https://github.com/jordan-example/resumecraft");
+  assert.equal(project.link, "https://resume.example.test");
+});

@@ -5,17 +5,19 @@ import {
   Columns,
   Download,
   Edit3,
-  FilePlus,
   Shield,
   Sliders,
 } from "react-feather";
 import { Link } from "react-router-dom";
 
 import transparentLogo from "../../assets/transparent-logo.svg";
+import { useResumeStore } from "../../store";
 
 import styles from "./LandingSections.module.css";
 
 const LandingSections: FC = () => {
+  const setTemplate = useResumeStore((state) => state.setTemplate);
+
   return (
     <>
       <section className={styles.features} id="features">
@@ -70,21 +72,26 @@ const LandingSections: FC = () => {
             <h2>Start with structure. Make it feel like yours.</h2>
             <p>
               Choose a conservative ATS layout, a restrained split format, or
-              a denser technical template. Every option keeps content—not
-              decoration—at the center.
+              a denser technical template. Every option keeps content not
+              decoration at the center.
             </p>
             <ul>
               <li><Check aria-hidden="true" /> Live preview while editing</li>
               <li><Check aria-hidden="true" /> Reorderable sections</li>
               <li><Check aria-hidden="true" /> Print-ready output</li>
             </ul>
-            <Link to="/resumebuilder">
-              Explore the builder <ArrowRight aria-hidden="true" />
-            </Link>
+            <p className={styles.templateHint}>
+              Click a template to open it in the builder and see how your resume looks.
+            </p>
           </div>
 
           <div className={styles.templateGallery} aria-label="Available resume layouts">
-            <article className={styles.templateCard}>
+            <Link
+              className={styles.templateCard}
+              to="/resumebuilder"
+              onClick={() => setTemplate("classic")}
+              aria-label="Open Modern Split in the resume builder"
+            >
               <div className={`${styles.miniResume} ${styles.splitResume}`} aria-hidden="true">
                 <div className={styles.miniHeader}>
                   <strong>Alex Morgan</strong>
@@ -115,9 +122,14 @@ const LandingSections: FC = () => {
                 </div>
                 <Columns aria-hidden="true" />
               </div>
-            </article>
+            </Link>
 
-            <article className={`${styles.templateCard} ${styles.offsetCard}`}>
+            <Link
+              className={`${styles.templateCard} ${styles.offsetCard}`}
+              to="/resumebuilder"
+              onClick={() => setTemplate("vertical")}
+              aria-label="Open ATS Classic in the resume builder"
+            >
               <div className={`${styles.miniResume} ${styles.verticalResume}`} aria-hidden="true">
                 <div className={styles.verticalHeader}>
                   <strong>Alex Morgan</strong>
@@ -142,9 +154,14 @@ const LandingSections: FC = () => {
                 </div>
                 <Columns aria-hidden="true" />
               </div>
-            </article>
+            </Link>
 
-            <article className={`${styles.templateCard} ${styles.compactCard}`}>
+            <Link
+              className={`${styles.templateCard} ${styles.compactCard}`}
+              to="/resumebuilder"
+              onClick={() => setTemplate("compact")}
+              aria-label="Open Compact Technical in the resume builder"
+            >
               <div className={`${styles.miniResume} ${styles.compactResume}`} aria-hidden="true">
                 <div className={styles.compactHeader}>
                   <strong>Alex Morgan</strong>
@@ -162,44 +179,8 @@ const LandingSections: FC = () => {
                 </div>
                 <Columns aria-hidden="true" />
               </div>
-            </article>
+            </Link>
           </div>
-        </div>
-      </section>
-
-      <section className={styles.workflow} id="how-it-works">
-        <div className={styles.sectionShell}>
-          <div className={styles.workflowHeading}>
-            <p className={styles.kicker}>A short path to done</p>
-            <h2>Three steps. No setup ceremony.</h2>
-          </div>
-
-          <ol className={styles.stepList}>
-            <li>
-              <span className={styles.stepIcon}><FilePlus aria-hidden="true" /></span>
-              <div>
-                <p>Step 1</p>
-                <h3>Start with your content</h3>
-                <span>Create from scratch, import a PDF or DOCX, or paste existing text.</span>
-              </div>
-            </li>
-            <li>
-              <span className={styles.stepIcon}><Edit3 aria-hidden="true" /></span>
-              <div>
-                <p>Step 2</p>
-                <h3>Edit and arrange</h3>
-                <span>Add the details that matter and watch the resume update beside you.</span>
-              </div>
-            </li>
-            <li>
-              <span className={styles.stepIcon}><Download aria-hidden="true" /></span>
-              <div>
-                <p>Step 3</p>
-                <h3>Download your PDF</h3>
-                <span>Review the page, choose your layout, and save the finished document.</span>
-              </div>
-            </li>
-          </ol>
         </div>
       </section>
 

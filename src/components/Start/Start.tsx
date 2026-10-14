@@ -1,13 +1,14 @@
-import React, { FC } from "react";
+import React, { FC, useEffect, useState } from "react";
 import {
-  ArrowLeft,
   ArrowRight,
+  Download,
   File,
   FileText,
   Lock,
   UploadCloud,
+  X,
 } from "react-feather";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { useResumeStore } from "../../store";
 import { isResumeDocumentEmpty } from "../../utils/resumeDocument";
@@ -15,28 +16,71 @@ import Navbar from "../Navbar/Navbar";
 
 import styles from "./Start.module.css";
 
+interface PendingReplacement {
+  description: string;
+  actionLabel: string;
+  action: () => void;
+}
+
 const Start: FC = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   const { document, startBlankResume, loadSampleResume } = useResumeStore();
-  const selectedMode = searchParams.get("mode");
+  const [pendingReplacement, setPendingReplacement] = useState<PendingReplacement | null>(null);
+  const hasCurrentDraft = !isResumeDocumentEmpty(document);
 
-  const canReplaceDraft = (nextDraft: string) =>
-    isResumeDocumentEmpty(document) ||
-    window.confirm(
-      `Replace your current draft with ${nextDraft}? Export a JSON backup first if you want to keep it.`
-    );
+  useEffect(() => {
+    if (!pendingReplacement) return undefined;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setPendingReplacement(null);
+    };
+    window.document.addEventListener("keydown", handleEscape);
+    return () => window.document.removeEventListener("keydown", handleEscape);
+  }, [pendingReplacement]);
 
-  const beginBlankResume = () => {
-    if (!canReplaceDraft("a blank resume")) return;
-    startBlankResume();
+  const completeStartingAction = (action: () => void) => {
+    action();
+    setPendingReplacement(null);
     navigate("/resumebuilder");
   };
 
+  const requestReplacement = (replacement: PendingReplacement) => {
+    if (!hasCurrentDraft) {
+      completeStartingAction(replacement.action);
+      return;
+    }
+    setPendingReplacement(replacement);
+  };
+
+  const beginBlankResume = () => {
+    requestReplacement({
+      description: "a blank resume",
+      actionLabel: "Replace with blank resume",
+      action: startBlankResume,
+    });
+  };
+
   const beginWithSample = () => {
-    if (!canReplaceDraft("the sample resume")) return;
-    loadSampleResume();
-    navigate("/resumebuilder");
+    requestReplacement({
+      description: "the sample resume",
+      actionLabel: "Replace with sample",
+      action: loadSampleResume,
+    });
+  };
+
+  const exportCurrentDraft = () => {
+    const blob = new Blob([JSON.stringify(document, null, 2)], { type: "application/json" });
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = window.document.createElement("a");
+    const safeTitle = document.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "resume";
+    link.href = downloadUrl;
+    link.download = `${safeTitle}.resumecraft.json`;
+    window.document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 0);
   };
 
   return (
@@ -45,22 +89,32 @@ const Start: FC = () => {
 
       <main className={styles.main}>
         <div className={styles.intro}>
-          <Link to="/" className={styles.backLink}>
-            <ArrowLeft aria-hidden="true" /> Back to home
-          </Link>
           <p className={styles.eyebrow}>Choose your starting point</p>
           <h1>How would you like to begin?</h1>
           <p className={styles.description}>
             Start with an empty document, explore a complete example, or bring
-            your existing resume when local import becomes available.
+            your existing resume into the local editor.
           </p>
           <p className={styles.privacyNote}>
             <Lock aria-hidden="true" /> No account required. Your resume stays in your browser.
           </p>
         </div>
 
+        {hasCurrentDraft ? (
+          <section className={styles.currentDraft} aria-labelledby="current-draft-title">
+            <div>
+              <p>Saved locally</p>
+              <h2 id="current-draft-title">Continue “{document.title}”</h2>
+              <span>Open your existing draft without changing any content.</span>
+            </div>
+            <Link to="/resumebuilder">
+              Continue editing <ArrowRight aria-hidden="true" />
+            </Link>
+          </section>
+        ) : null}
+
         <section className={styles.options} aria-label="Resume starting options">
-          <article className={`${styles.optionCard} ${selectedMode === "create" ? styles.selectedCard : ""}`}>
+          <article className={styles.optionCard}>
             <span className={styles.optionIcon}><File aria-hidden="true" /></span>
             <div>
               <p className={styles.optionLabel}>Clean slate</p>
@@ -90,24 +144,24 @@ const Start: FC = () => {
             </button>
           </article>
 
-          <article className={`${styles.optionCard} ${styles.uploadCard} ${selectedMode === "upload" ? styles.selectedCard : ""}`}>
+          <article className={`${styles.optionCard} ${styles.uploadCard}`}>
             <div className={styles.cardTopline}>
               <span className={styles.optionIcon}><UploadCloud aria-hidden="true" /></span>
-              <span className={styles.soonBadge}>Available locally</span>
+              <span className={styles.soonBadge}>PDF · DOCX · Paste</span>
             </div>
             <div>
               <p className={styles.optionLabel}>Bring what you have</p>
-              <h2>Upload an existing resume</h2>
+              <h2>Import or paste your resume</h2>
               <p>
-                Extract text from a PDF or DOCX locally. Parsing and field-by-field
-                review will be added in the next steps.
+                Upload a PDF or DOCX, or paste existing text. Review every
+                detected field before it enters your draft.
               </p>
             </div>
             <button
               type="button"
               onClick={() => navigate("/import")}
             >
-              Import PDF or DOCX <ArrowRight aria-hidden="true" />
+              Import existing resume <ArrowRight aria-hidden="true" />
             </button>
             <p className={styles.uploadExplanation} id="upload-explanation">
               Files are processed in your browser and are not sent to a server.
@@ -115,16 +169,54 @@ const Start: FC = () => {
           </article>
         </section>
 
-        <div className={styles.modeLinks} aria-label="Select onboarding option">
-          <button type="button" onClick={() => setSearchParams({ mode: "create" })}>
-            Create options
-          </button>
-          <span aria-hidden="true">·</span>
-          <button type="button" onClick={() => setSearchParams({ mode: "upload" })}>
-            Upload information
-          </button>
-        </div>
       </main>
+
+      {pendingReplacement ? (
+        <div
+          className={styles.dialogBackdrop}
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setPendingReplacement(null);
+          }}
+        >
+          <section
+            className={styles.replacementDialog}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="replace-draft-title"
+            aria-describedby="replace-draft-description"
+          >
+            <button
+              type="button"
+              className={styles.dialogClose}
+              onClick={() => setPendingReplacement(null)}
+              aria-label="Cancel replacing the current draft"
+            >
+              <X aria-hidden="true" />
+            </button>
+            <p className={styles.dialogEyebrow}>Current draft protected</p>
+            <h2 id="replace-draft-title">Replace “{document.title}”?</h2>
+            <p id="replace-draft-description">
+              Starting with {pendingReplacement.description} will replace the resume saved in this browser.
+              Export a backup first if you may want it later.
+            </p>
+            <div className={styles.dialogActions}>
+              <button type="button" className={styles.backupButton} onClick={exportCurrentDraft}>
+                <Download aria-hidden="true" /> Export backup
+              </button>
+              <button
+                type="button"
+                className={styles.replaceButton}
+                onClick={() => completeStartingAction(pendingReplacement.action)}
+              >
+                {pendingReplacement.actionLabel}
+              </button>
+            </div>
+            <button type="button" className={styles.cancelButton} onClick={() => setPendingReplacement(null)}>
+              Keep current draft
+            </button>
+          </section>
+        </div>
+      ) : null}
     </div>
   );
 };

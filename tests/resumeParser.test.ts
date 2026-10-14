@@ -91,7 +91,7 @@ test("marks uncertain header fields and empty sections for review", () => {
 
   assert.equal(result.contact.fullName?.confidence, "medium");
   assert.equal(result.contact.headline?.confidence, "low");
-  assert.equal(result.contact.location?.confidence, "low");
+  assert.equal(result.contact.location?.confidence, "medium");
   assert.ok(result.needsReview.some((item) => item.text === "Summary"));
   assert.ok(result.needsReview.some((item) => item.text === "Platform Specialist"));
 });
@@ -102,4 +102,82 @@ test("does not discard content when no supported headings are present", () => {
   assert.equal(result.originalText.includes("Built internal developer tools."), true);
   assert.equal(result.unrecognized.length, 1);
   assert.match(result.unrecognized[0].content, /developer tools/);
+});
+
+test("uses embedded hyperlink targets that are not visible in extracted PDF text", () => {
+  const result = parseResumeText(
+    `Jordan Example\nBackend Engineer\nSummary\nBuilds reliable systems.`,
+    ["https://www.linkedin.com/in/jordan-example", "https://portfolio.example.dev"]
+  );
+
+  assert.deepEqual(result.contact.links.map((link) => link.type), ["linkedin", "portfolio"]);
+  assert.equal(result.contact.links[0].value, "https://www.linkedin.com/in/jordan-example");
+});
+
+test("detects a location alongside other contact details", () => {
+  const result = parseResumeText(`Jordan Example
+Backend Engineer
+jordan@example.test | Bengaluru, Karnataka, India | +91 98765 43210
+Summary
+Builds reliable systems.`);
+
+  assert.equal(result.contact.location?.value, "Bengaluru, Karnataka, India");
+  assert.equal(result.contact.location?.confidence, "medium");
+});
+
+test("detects a standalone city in the resume header", () => {
+  const result = parseResumeText(`Jordan Example
+Backend Engineer
+Bengaluru
+jordan@example.test
+Summary
+Builds reliable systems.`);
+
+  assert.equal(result.contact.location?.value, "Bengaluru");
+});
+
+test("keeps links attached to the section where they appear", () => {
+  const result = parseResumeText(`Jordan Example
+Projects
+ResumeCraft
+GitHub https://github.com/jordan-example/resumecraft
+Live https://resume.example.test
+2024 - Present`);
+
+  assert.deepEqual(
+    result.sections.projects[0].links.map((link) => link.value),
+    ["https://github.com/jordan-example/resumecraft", "https://resume.example.test"]
+  );
+});
+
+test("detects a bare portfolio domain without treating an email domain as a link", () => {
+  const result = parseResumeText(`Jordan Example
+Backend Engineer
+jordan@example.test
+portfolio.example.dev
+Summary
+Builds reliable systems.`);
+
+  assert.deepEqual(result.contact.links.map((link) => link.value), ["portfolio.example.dev"]);
+});
+
+test("splits date-bounded work history into separate experience entries", () => {
+  const result = parseResumeText(`Jordan Example
+Professional Experience
+Amazon (via Consulting Partner)   May 2026 - Present
+Software Development Engineer I   Bengaluru, India
+• Built a shared caching layer.
+• Hardened deployment pipelines.
+Cimpress India   August 2024 - April 2026
+Software Development Engineer I   Remote
+• Migrated an event processor.
+Oracle Financial Services Software   July 2023 - September 2023
+Java Developer Intern   Bengaluru, India
+• Built a scheduled metric collector.`);
+
+  assert.equal(result.sections.experience.length, 3);
+  assert.match(result.sections.experience[0].content, /^Amazon/);
+  assert.match(result.sections.experience[1].content, /^Cimpress/);
+  assert.match(result.sections.experience[2].content, /^Oracle/);
+  assert.equal(result.sections.experience[0].dateRanges[0].isCurrent, true);
 });

@@ -18,7 +18,6 @@
 
 .sectionHeading h2,
 .templateCopy h2,
-.workflowHeading h2,
 .privacyCard h2,
 .finalCta h2 {
   margin: 0;
@@ -62,8 +61,7 @@
   border-left: 1px solid #ded6cc;
 }
 
-.featureIcon,
-.stepIcon {
+.featureIcon {
   width: 46px;
   height: 46px;
   display: inline-flex;
@@ -74,8 +72,7 @@
   color: #aa4a22;
 }
 
-.featureIcon svg,
-.stepIcon svg {
+.featureIcon svg {
   width: 20px;
   height: 20px;
 }
@@ -150,7 +147,6 @@
   stroke-width: 3;
 }
 
-.templateCopy > a,
 .finalCta a {
   width: fit-content;
   min-height: 48px;
@@ -167,13 +163,22 @@
   transition: background-color 160ms ease, transform 160ms ease;
 }
 
-.templateCopy > a:hover,
 .finalCta a:hover {
   background: #b64d20;
   transform: translateY(-2px);
 }
 
-.templateCopy a svg,
+.templateCopy > .templateHint {
+  max-width: 390px;
+  margin: 27px 0 0;
+  padding-top: 19px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f0e8e0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
 .finalCta a svg {
   width: 18px;
   height: 18px;
@@ -188,9 +193,25 @@
 .templateCard {
   min-width: 0;
   padding: 13px;
+  display: block;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 17px;
   background: #342f2b;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.templateCard:hover,
+.templateCard:focus-visible {
+  border-color: rgba(215, 106, 54, 0.85);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.24);
+}
+
+.templateCard:focus-visible {
+  outline: 3px solid rgba(215, 106, 54, 0.48);
+  outline-offset: 4px;
 }
 
 .offsetCard {
@@ -310,68 +331,6 @@
 .templateMeta svg {
   width: 18px;
   color: #d36a38;
-}
-
-.workflow {
-  padding: 108px 0;
-  background: #f6f0e8;
-}
-
-.workflowHeading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 40px;
-}
-
-.workflowHeading .kicker {
-  flex: 0 0 auto;
-}
-
-.workflowHeading h2 {
-  max-width: 620px;
-}
-
-.stepList {
-  margin: 58px 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  list-style: none;
-}
-
-.stepList li {
-  min-height: 255px;
-  padding: 29px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  border: 1px solid #ddd3c8;
-  border-radius: 15px;
-  background: rgba(255, 253, 249, 0.66);
-}
-
-.stepList li > div > p {
-  margin: 0 0 7px;
-  color: #ad4e25;
-  font-size: 0.71rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.stepList h3 {
-  margin: 0 0 10px;
-  color: #2b2622;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.28rem;
-}
-
-.stepList li > div > span {
-  color: #6a625c;
-  font-size: 0.88rem;
-  line-height: 1.6;
 }
 
 .privacy {
@@ -502,7 +461,6 @@
   text-decoration: none;
 }
 
-.templateCopy > a:focus-visible,
 .finalCta a:focus-visible,
 .footer a:focus-visible {
   outline: 3px solid rgba(221, 109, 44, 0.42);
@@ -515,8 +473,7 @@
     width: min(100% - 40px, 680px);
   }
 
-  .featureGrid,
-  .stepList {
+  .featureGrid {
     grid-template-columns: 1fr;
   }
 
@@ -534,14 +491,6 @@
     gap: 56px;
   }
 
-  .workflowHeading {
-    display: block;
-  }
-
-  .stepList li {
-    min-height: 220px;
-  }
-
   .privacyCard {
     grid-template-columns: auto 1fr;
     padding: 42px;
@@ -557,7 +506,6 @@
 @media (max-width: 600px) {
   .features,
   .templates,
-  .workflow,
   .privacy,
   .finalCta {
     padding: 76px 0;
