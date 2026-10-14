@@ -38,6 +38,14 @@ declare module '*?url' {
   export default url;
 }
 
+interface ImportMetaEnv {
+  readonly VITE_WEB3FORMS_ACCESS_KEY?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
 declare module 'mammoth/mammoth.browser' {
   interface MammothMessage {
     message: string;
