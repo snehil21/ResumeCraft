@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FC, useEffect, useMemo, useRef, useState } from "react";
+import React, { ChangeEvent, FC, useEffect, useRef, useState } from "react";
 import { useReactToPrint } from "react-to-print";
 import {
   AlertCircle, CheckCircle, CheckSquare, Download, Edit3, Eye, FilePlus,
@@ -7,11 +7,13 @@ import {
 
 import Editor from "../Editor/Editor";
 import ResumeRenderer from "../Resume/ResumeRenderer";
+import ResumeHealth from "../ResumeHealth/ResumeHealth";
 import DesignControls from "../DesignControls/DesignControls";
 import styles from "./Body.module.css";
 import { useResumeStore } from "../../store";
 import { SECTION_LABELS, getTemplateOption } from "../../constants";
-import { ResumeDocument, Section } from "../../types";
+import { ResumeDocument } from "../../types";
+import type { HealthTarget } from "../../utils/resumeHealth";
 import {
   isResumeDocument, isResumeDocumentEmpty, readPersistedResumeDocument,
 } from "../../utils/resumeDocument";
@@ -31,17 +33,6 @@ const modes: Array<{ id: BuilderMode; label: string; description: string; icon: 
   { id: "review", label: "Review", description: "Check and export", icon: CheckSquare },
 ];
 
-const hasMeaningfulContent = (section: Section): boolean => {
-  if (typeof section.detail === "string") return section.detail.trim().length > 0;
-  if (section.detail && typeof section.detail === "object") {
-    return Object.values(section.detail).some((value) => String(value ?? "").trim());
-  }
-  if (section.points?.some((point) => point.trim())) return true;
-  return Boolean(section.details?.some((detail) =>
-    Object.entries(detail).some(([key, value]) => key !== "id" && String(value ?? "").trim())
-  ));
-};
-
 const Body: FC = () => {
   const resumeRef = useRef<HTMLDivElement>(null);
   const previewViewportRef = useRef<HTMLDivElement>(null);
@@ -58,6 +49,7 @@ const Body: FC = () => {
     document, pastDocuments, futureDocuments, startBlankResume,
     loadSampleResume, resetResume,
     importResumeDocument, ensureDocumentSaved, undo, redo,
+    setActiveSectionKey, setActiveDetailIndex,
   } = useResumeStore();
   const { template } = document;
   const pageDimensions = PRINT_PAGE_DIMENSIONS[document.page.size];
@@ -126,18 +118,14 @@ const Body: FC = () => {
     return () => window.removeEventListener("keydown", handleKeyboardHistory);
   }, [redo, undo]);
 
-  const reviewStats = useMemo(() => {
-    const allSections = Object.values(document.resumeInformation);
-    const visibleSections = allSections.filter((section) => section.visible);
-    const incompleteSections = visibleSections.filter((section) => !hasMeaningfulContent(section));
-    const basic = document.resumeInformation.basicInfo?.detail as { name?: string; email?: string; title?: string } | undefined;
-    const missingBasics = [
-      !basic?.name?.trim() ? "Name" : "",
-      !basic?.title?.trim() ? "Professional title" : "",
-      !basic?.email?.trim() ? "Email" : "",
-    ].filter(Boolean);
-    return { visibleSections, incompleteSections, missingBasics };
-  }, [document]);
+  const navigateToHealthTarget = (target: HealthTarget) => {
+    if (target.mode === "content" && target.sectionKey) {
+      setActiveSectionKey(target.sectionKey);
+      if (target.detailIndex !== undefined) setActiveDetailIndex(target.detailIndex);
+    }
+    setMode(target.mode);
+    setMobilePane("edit");
+  };
 
   const confirmDraftReplacement = (replacement: string): boolean =>
     isResumeDocumentEmpty(document) || window.confirm(
@@ -238,16 +226,8 @@ const Body: FC = () => {
           </div> : null}
 
           {mode === "review" ? <div className={styles.modePanel}>
-            <div className={styles.panelIntro}><p>Review mode</p><h2>Finish with confidence.</h2><span>Check the essentials before creating the PDF.</span></div>
-            <section className={styles.reviewCard}>
-              <div className={styles.reviewScore}><span>{reviewStats.incompleteSections.length + reviewStats.missingBasics.length ? "Review" : "Ready"}</span><strong>{reviewStats.visibleSections.length}</strong><small>visible sections</small></div>
-              <div className={styles.reviewChecklist}>
-                <div className={!reviewStats.missingBasics.length ? styles.checkPassed : ""}>{!reviewStats.missingBasics.length ? <CheckCircle /> : <AlertCircle />}<span><strong>Header essentials</strong><small>{reviewStats.missingBasics.length ? `Missing: ${reviewStats.missingBasics.join(", ")}` : "Name, title, and email are present"}</small></span></div>
-                <div className={!reviewStats.incompleteSections.length ? styles.checkPassed : ""}>{!reviewStats.incompleteSections.length ? <CheckCircle /> : <AlertCircle />}<span><strong>Visible section content</strong><small>{reviewStats.incompleteSections.length ? `${reviewStats.incompleteSections.length} visible section(s) need content` : "Every visible section contains content"}</small></span></div>
-                <div className={styles.checkPassed}><CheckCircle /><span><strong>Saved locally</strong><small>Your latest document is stored in this browser</small></span></div>
-                <div className={previewMetrics.pageCount === 1 ? styles.checkPassed : ""}>{previewMetrics.pageCount === 1 ? <CheckCircle /> : <AlertCircle />}<span><strong>Page fit</strong><small>{previewMetrics.pageCount === 1 ? "Content fits on one page" : `Content currently spans ${previewMetrics.pageCount} pages`}</small></span></div>
-              </div>
-            </section>
+            <div className={styles.panelIntro}><p>Review mode</p><h2>Finish with confidence.</h2><span>Use local checks to find specific improvements before creating the PDF.</span></div>
+            <ResumeHealth document={document} pageCount={previewMetrics.pageCount} onNavigate={navigateToHealthTarget} />
             <button type="button" className={styles.reviewDownload} onClick={handlePrint}><Download /> Download reviewed PDF</button>
           </div> : null}
         </section>
