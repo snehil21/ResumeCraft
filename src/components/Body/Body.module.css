@@ -1,41 +1,52 @@
 .container { min-height: 100vh; background: #f3eee7; color: #29241f; }
-.topbar { position: sticky; top: 0; z-index: 100; padding: 14px clamp(18px, 3vw, 42px) 12px; border-bottom: 1px solid #ddd3c9; background: rgba(255,253,249,.97); box-shadow: 0 5px 22px rgba(66,47,34,.06); backdrop-filter: blur(14px); }
-.builderHeader,.navigationRow { display: flex; align-items: center; justify-content: space-between; gap: 22px; }
-.titleSection p,.panelIntro>p,.previewHeader p { margin: 0 0 3px; color: #a64923; font-size: .64rem; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
-.titleSection h1 { max-width: 500px; margin: 0; overflow: hidden; color: #241f1b; font-family: Georgia,"Times New Roman",serif; font-size: 1.42rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
-.headerActions,.draftActions,.modeTabs,.mobilePaneTabs { display: flex; align-items: center; }
-.headerActions { gap: 8px; }
-.saveStatus { min-width: 108px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: #6d645d; font-size: .7rem; font-weight: 750; }
-.saveStatus svg,.draftActions svg,.downloadButton svg,.modeTabs svg,.mobilePaneTabs svg { width: 15px; height: 15px; }
+.topbar { min-height: 70px; position: sticky; top: 0; z-index: 100; padding: 10px clamp(18px,3vw,42px); display: grid; grid-template-columns: minmax(220px,.85fr) auto minmax(220px,.85fr); align-items: center; gap: 24px; border-bottom: 1px solid #ddd3c9; background: rgba(255,253,249,.97); box-shadow: 0 5px 22px rgba(66,47,34,.06); backdrop-filter: blur(14px); }
+.builderIdentity,.headerActions,.historyActions,.modeTabs,.mobilePaneTabs { display: flex; align-items: center; }
+.builderIdentity { min-width: 0; gap: 10px; }
+.brandMark { width: 38px; height: 38px; display: grid; flex: 0 0 auto; place-items: center; overflow: hidden; border: 1px solid #ddd3c9; border-radius: 10px; background: #fff; }
+.brandMark img { width: 32px; height: 32px; object-fit: cover; }
+.titleSection { min-width: 0; }
+.titleSection h1 { max-width: 320px; margin: 0; overflow: hidden; color: #241f1b; font-family: Georgia,"Times New Roman",serif; font-size: 1.05rem; font-weight: 650; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+.panelIntro>p,.previewHeader p { margin: 0 0 3px; color: #a64923; font-size: .64rem; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+.headerActions { justify-self: end; gap: 8px; }
+.historyActions { gap: 5px; }
+.saveStatus { margin-top: 3px; display: inline-flex; align-items: center; justify-content: flex-start; gap: 5px; color: #6d645d; font-size: .63rem; font-weight: 750; }
+.saveStatus svg,.downloadButton svg,.modeTabs svg,.mobilePaneTabs svg,.fileMenuPopover svg { width: 15px; height: 15px; }
 .saving { color: #8b5d13; }.saving svg { animation: savingSpin 1s linear infinite; }.saved { color: #287052; }.error { color: #b42318; }
 @keyframes savingSpin { to { transform: rotate(360deg); } }
-.iconButton,.downloadButton,.draftActions button,.modeTabs button,.mobilePaneTabs button,.reviewDownload { font: inherit; cursor: pointer; }
+.iconButton,.downloadButton,.moreButton,.fileMenuPopover button,.modeTabs button,.mobilePaneTabs button,.reviewDownload { font: inherit; cursor: pointer; }
 .iconButton { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid #d8cec5; border-radius: 8px; background: #fff; color: #504841; }
 .iconButton svg { width: 15px; }.iconButton:disabled { cursor: not-allowed; opacity: .38; }
 .downloadButton,.reviewDownload { min-height: 38px; padding: 0 14px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #25211e; border-radius: 8px; background: #25211e; color: #fffdf9; font-size: .73rem; font-weight: 780; }
-.navigationRow { margin-top: 12px; padding-top: 11px; border-top: 1px solid #eee6df; }
-.modeTabs { gap: 5px; }
-.modeTabs button { min-width: 142px; padding: 8px 11px; display: flex; align-items: center; gap: 8px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: #71675f; text-align: left; }
-.modeTabs button>span { display: grid; gap: 1px; }
-.modeTabs strong { color: inherit; font-size: .75rem; }.modeTabs small { color: #8a8078; font-size: .61rem; }
-.modeTabs .activeMode { border-color: #d9c5b7; background: #f4e7dc; color: #943f1d; }
-.draftActions { flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
-.draftActions button { min-height: 32px; padding: 0 9px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #ddd4cc; border-radius: 7px; background: #fff; color: #5d554e; font-size: .65rem; font-weight: 730; }
-.fileInput { display: none; }.draftNotice { margin: 8px 0 0; color: #6c625b; font-size: .68rem; text-align: right; }.mobilePaneTabs { display: none; }
+.modeTabs { padding: 4px; justify-self: center; gap: 4px; border: 1px solid #d9cfc5; border-radius: 12px; background: #eee7df; }
+.modeTabs button { min-height: 38px; padding: 0 14px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #d8cec5; border-radius: 8px; background: #fffdf9; color: #514941; box-shadow: 0 1px 3px rgba(65,47,34,.08); font-size: .71rem; font-weight: 780; white-space: nowrap; }
+.modeTabs button:hover { border-color: #ba8469; background: #fbf3ec; color: #8f3d1d; }
+.modeTabs .activeMode { border-color: #9e401d; background: #a8431d; color: #fff; box-shadow: 0 4px 10px rgba(126,50,22,.2); }
+.fileMenu { position: relative; }
+.moreButton { width: 38px; height: 38px; padding: 0; display: grid; place-items: center; border: 1px solid #d8cec5; border-radius: 8px; background: #fff; color: #504841; }
+.moreButton svg { width: 19px; height: 19px; }
+.fileMenuPopover { width: 310px; position: absolute; top: calc(100% + 10px); right: 0; z-index: 200; padding: 8px; display: grid; gap: 3px; border: 1px solid #d8cec5; border-radius: 12px; background: #fffdf9; box-shadow: 0 18px 44px rgba(54,39,28,.2); }
+.fileMenuPopover button { width: 100%; padding: 10px; display: flex; align-items: flex-start; gap: 10px; border: 0; border-radius: 8px; background: transparent; color: #3f3832; text-align: left; }
+.fileMenuPopover button:hover { background: #f3e9df; color: #943f1d; }
+.fileMenuPopover button>svg { margin-top: 2px; flex: 0 0 auto; }
+.fileMenuPopover button>span { display: grid; gap: 2px; }
+.fileMenuPopover strong { font-size: .76rem; }.fileMenuPopover small { color: #7d736b; font-size: .64rem; line-height: 1.35; }
+.menuDivider { height: 1px; margin: 4px 6px; background: #e9e0d8; }
+.fileInput { display: none; }.draftNotice { position: fixed; top: 80px; right: 28px; z-index: 160; margin: 0; padding: 9px 12px; border: 1px solid #d8cec5; border-radius: 8px; background: #fffdf9; color: #574f48; box-shadow: 0 10px 28px rgba(54,39,28,.14); font-size: .68rem; }.mobilePaneTabs { display: none; }
 .main { width: min(1480px,100%); margin: 0 auto; padding: 24px clamp(18px,3vw,42px) 60px; display: grid; grid-template-columns: minmax(420px,.82fr) minmax(540px,1.18fr); gap: 24px; align-items: start; }
 .workspacePanel { min-width: 0; }.panelIntro,.previewHeader { padding: 17px 19px; border: 1px solid #ddd3c9; border-radius: 13px; background: rgba(255,253,249,.92); }.panelIntro { margin-bottom: 13px; }
 .panelIntro h2,.previewHeader h2 { margin: 0; color: #2b2622; font-family: Georgia,"Times New Roman",serif; }.panelIntro h2 { font-size: 1.35rem; }.panelIntro>span { margin-top: 5px; display: block; color: #776d65; font-size: .74rem; }
-.previewPanel { min-width: 0; position: sticky; top: 174px; }.previewHeader { margin-bottom: 13px; display: flex; align-items: center; justify-content: space-between; }.previewHeader h2 { font-size: 1.12rem; }.previewHeader>span { padding: 5px 8px; border-radius: 6px; background: #eee6de; color: #685b51; font-size: .63rem; font-weight: 800; }
+.previewPanel { min-width: 0; position: sticky; top: 94px; }.previewHeader { margin-bottom: 13px; display: flex; align-items: center; justify-content: space-between; }.previewHeader h2 { font-size: 1.12rem; }.previewHeader>span { padding: 5px 8px; border-radius: 6px; background: #eee6de; color: #685b51; font-size: .63rem; font-weight: 800; }
 .paginationStatus { margin-bottom: 10px; padding: 10px 12px; display: flex; align-items: flex-start; gap: 8px; border: 1px solid; border-radius: 10px; }
 .paginationStatus svg { width: 16px; flex: 0 0 auto; }.paginationStatus span { display: grid; gap: 2px; }.paginationStatus strong { font-size: .7rem; }.paginationStatus small { color: #71675f; font-size: .62rem; line-height: 1.4; }
 .pageFit { border-color: #bcd9c7; background: #edf7f1; color: #276448; }.overflowWarning { border-color: #e2c58d; background: #fff5df; color: #8b5b13; }
-.previewViewport { max-height: calc(100vh - 330px); padding: 18px; overflow: auto; border: 1px solid #d8cec5; border-radius: 12px; background: #d9d2ca; box-shadow: 0 16px 38px rgba(55,39,27,.13); }
+.previewViewport { max-height: calc(100vh - 250px); padding: 18px; overflow: auto; border: 1px solid #d8cec5; border-radius: 12px; background: #d9d2ca; box-shadow: 0 16px 38px rgba(55,39,27,.13); }
 .previewStage { position: relative; margin: 0 auto; }.previewDocument { position: absolute; inset: 0 auto auto 0; transform-origin: top left; }
 .pageBoundary { position: absolute; z-index: 3; right: 0; left: 0; border-top: 2px dashed #b75024; pointer-events: none; }.pageNumber { position: absolute; z-index: 4; right: 8px; padding: 3px 6px; border-radius: 5px; background: rgba(42,37,32,.82); color: #fff; font-size: .58rem; font-weight: 800; pointer-events: none; }
 .modePanel { display: grid; gap: 13px; }.reviewDownload { width: 100%; min-height: 46px; }
-.iconButton:hover:not(:disabled),.draftActions button:hover,.downloadButton:hover,.reviewDownload:hover { border-color: #b75024; background: #b75024; color: #fff; }
-.iconButton:focus-visible,.draftActions button:focus-visible,.downloadButton:focus-visible,.modeTabs button:focus-visible,.mobilePaneTabs button:focus-visible,.reviewDownload:focus-visible { outline: 3px solid rgba(183,80,36,.28); outline-offset: 2px; }
-@media (max-width:1060px) { .builderHeader,.navigationRow { align-items: stretch; flex-direction: column; }.headerActions { justify-content: space-between; }.modeTabs { width: 100%; }.modeTabs button { flex: 1; min-width: 0; }.draftActions { justify-content: flex-start; }.main { grid-template-columns: minmax(360px,.9fr) minmax(460px,1.1fr); }.previewPanel { top: 252px; } }
-@media (max-width:780px) { .topbar { position: static; padding: 12px 14px; }.titleSection { min-width: 0; }.headerActions { flex-wrap: wrap; }.saveStatus { justify-content: flex-start; margin-right: auto; }.downloadButton { flex: 1 1 150px; }.navigationRow { gap: 10px; }.modeTabs button { justify-content: center; min-width: 0; }.modeTabs button span small { display: none; }.draftActions { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); }.draftActions button { justify-content: center; padding: 0 5px; }.mobilePaneTabs { margin: 12px 14px 0; padding: 4px; display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #d9cfc5; border-radius: 10px; background: #e8e0d8; }.mobilePaneTabs button { min-height: 39px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0; border-radius: 7px; background: transparent; color: #685f58; font-size: .74rem; font-weight: 780; }.mobilePaneTabs .activePane { background: #fffdf9; color: #9a401d; box-shadow: 0 1px 5px rgba(63,45,32,.1); }.main { display: block; padding: 13px 14px 45px; }.workspacePanel.mobileHidden { display: none; }.previewPanel { position: static; }.previewPanel.mobileHidden { width: calc(100vw - 28px); position: absolute; left: -10000px; visibility: hidden; pointer-events: none; }.previewViewport { max-height: none; } }
-@media (max-width:520px) { .titleSection h1 { font-size: 1.16rem; }.modeTabs button { padding: 8px 5px; }.modeTabs button>span { display: block; }.modeTabs button strong { font-size: .67rem; }.draftActions { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+.iconButton:hover:not(:disabled),.moreButton:hover,.downloadButton:hover,.reviewDownload:hover { border-color: #b75024; background: #b75024; color: #fff; }
+.brandMark:focus-visible,.iconButton:focus-visible,.moreButton:focus-visible,.fileMenuPopover button:focus-visible,.downloadButton:focus-visible,.modeTabs button:focus-visible,.mobilePaneTabs button:focus-visible,.reviewDownload:focus-visible { outline: 3px solid rgba(183,80,36,.28); outline-offset: 2px; }
+@media (max-width:1180px) { .topbar { grid-template-columns: minmax(180px,1fr) auto auto; gap: 14px; }.titleSection h1 { max-width: 220px; }.modeTabs button { padding: 0 10px; }.main { grid-template-columns: minmax(360px,.9fr) minmax(460px,1.1fr); } }
+@media (max-width:960px) { .topbar { grid-template-columns: 1fr auto; }.modeTabs { width: 100%; grid-column: 1/-1; grid-row: 2; }.modeTabs button { flex: 1; }.previewPanel { top: 150px; }.previewViewport { max-height: calc(100vh - 305px); } }
+@media (max-width:780px) { .topbar { position: static; padding: 12px 14px; }.titleSection { min-width: 0; }.titleSection h1 { max-width: 190px; }.headerActions { gap: 5px; }.downloadButton { padding: 0 10px; }.modeTabs button { min-width: 0; padding: 0 8px; }.modeTabs button span { font-size: .66rem; }.mobilePaneTabs { margin: 12px 14px 0; padding: 4px; display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #d9cfc5; border-radius: 10px; background: #e8e0d8; }.mobilePaneTabs button { min-height: 39px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0; border-radius: 7px; background: transparent; color: #685f58; font-size: .74rem; font-weight: 780; }.mobilePaneTabs .activePane { background: #fffdf9; color: #9a401d; box-shadow: 0 1px 5px rgba(63,45,32,.1); }.main { display: block; padding: 13px 14px 45px; }.workspacePanel.mobileHidden { display: none; }.previewPanel { position: static; }.previewPanel.mobileHidden { width: calc(100vw - 28px); position: absolute; left: -10000px; visibility: hidden; pointer-events: none; }.previewViewport { max-height: none; } }
+@media (max-width:520px) { .brandMark { display: none; }.titleSection h1 { max-width: 150px; font-size: .93rem; }.saveStatus { font-size: .58rem; }.historyActions { display: none; }.downloadButton { font-size: 0; }.downloadButton svg { width: 17px; height: 17px; }.modeTabs button { gap: 4px; padding: 0 5px; }.modeTabs button span { font-size: .6rem; }.fileMenuPopover { width: min(310px,calc(100vw - 28px)); } }
 @media (prefers-reduced-motion:reduce) { .saving svg { animation: none; } }

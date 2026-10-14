@@ -2,9 +2,11 @@ import React, { ChangeEvent, FC, useEffect, useRef, useState } from "react";
 import { useReactToPrint } from "react-to-print";
 import {
   AlertCircle, CheckCircle, CheckSquare, Download, Edit3, Eye, FilePlus,
-  Layout, RefreshCw, RotateCcw, RotateCw, Upload,
+  Layout, MoreHorizontal, RefreshCw, RotateCcw, RotateCw, Upload,
 } from "react-feather";
+import { Link } from "react-router-dom";
 
+import rcMark from "../../assets/rc-mark.png";
 import Editor from "../Editor/Editor";
 import ResumeRenderer from "../Resume/ResumeRenderer";
 import ResumeHealth from "../ResumeHealth/ResumeHealth";
@@ -27,27 +29,29 @@ type BuilderMode = "content" | "design" | "review";
 type MobilePane = "edit" | "preview";
 type PreviewMetrics = { scale: number; pageCount: number; contentHeight: number };
 
-const modes: Array<{ id: BuilderMode; label: string; description: string; icon: typeof Edit3 }> = [
-  { id: "content", label: "Content", description: "Write and organize", icon: Edit3 },
-  { id: "design", label: "Design", description: "Choose the presentation", icon: Layout },
-  { id: "review", label: "Review", description: "Check and export", icon: CheckSquare },
+const modes: Array<{ id: BuilderMode; label: string; accessibleLabel: string; icon: typeof Edit3 }> = [
+  { id: "content", label: "Edit content", accessibleLabel: "Edit resume content", icon: Edit3 },
+  { id: "design", label: "Customize design", accessibleLabel: "Customize resume design", icon: Layout },
+  { id: "review", label: "Review & export", accessibleLabel: "Review and export resume", icon: CheckSquare },
 ];
 
 const Body: FC = () => {
   const resumeRef = useRef<HTMLDivElement>(null);
   const previewViewportRef = useRef<HTMLDivElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const fileMenuRef = useRef<HTMLDivElement>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saving");
   const [draftNotice, setDraftNotice] = useState("");
   const [mode, setMode] = useState<BuilderMode>("content");
   const [mobilePane, setMobilePane] = useState<MobilePane>("edit");
+  const [isFileMenuOpen, setIsFileMenuOpen] = useState(false);
   const [previewMetrics, setPreviewMetrics] = useState<PreviewMetrics>({
     scale: 1, pageCount: 1, contentHeight: PRINT_PAGE_DIMENSIONS.A4.heightPx,
   });
 
   const {
     document, pastDocuments, futureDocuments, startBlankResume,
-    loadSampleResume, resetResume,
+    loadSampleResume,
     importResumeDocument, ensureDocumentSaved, undo, redo,
     setActiveSectionKey, setActiveDetailIndex,
   } = useResumeStore();
@@ -61,6 +65,23 @@ const Body: FC = () => {
   });
 
   useEffect(() => { ensureDocumentSaved(); }, [ensureDocumentSaved]);
+
+  useEffect(() => {
+    if (!isFileMenuOpen) return undefined;
+    const closeFileMenu = (event: MouseEvent | KeyboardEvent) => {
+      if (event instanceof KeyboardEvent) {
+        if (event.key === "Escape") setIsFileMenuOpen(false);
+        return;
+      }
+      if (!fileMenuRef.current?.contains(event.target as Node)) setIsFileMenuOpen(false);
+    };
+    window.document.addEventListener("mousedown", closeFileMenu);
+    window.document.addEventListener("keydown", closeFileMenu);
+    return () => {
+      window.document.removeEventListener("mousedown", closeFileMenu);
+      window.document.removeEventListener("keydown", closeFileMenu);
+    };
+  }, [isFileMenuOpen]);
 
   useEffect(() => {
     setSaveStatus("saving");
@@ -170,38 +191,57 @@ const Body: FC = () => {
   return (
     <div className={styles.container}>
       <header className={styles.topbar}>
-        <div className={styles.builderHeader}>
+        <div className={styles.builderIdentity}>
+          <Link className={styles.brandMark} to="/" aria-label="ResumeCraft home">
+            <img src={rcMark} alt="" />
+          </Link>
           <div className={styles.titleSection}>
-            <p>ResumeCraft studio</p><h1>{document.title}</h1>
-          </div>
-          <div className={styles.headerActions}>
+            <h1>{document.title}</h1>
             <div className={`${styles.saveStatus} ${styles[saveStatus]}`} role="status" aria-live="polite">
               {saveStatus === "saving" ? <RefreshCw aria-hidden="true" /> : null}
               {saveStatus === "saved" ? <CheckCircle aria-hidden="true" /> : null}
               {saveStatus === "error" ? <AlertCircle aria-hidden="true" /> : null}
               {saveStatus === "saving" ? "Saving" : saveStatus === "saved" ? "Saved locally" : "Couldn’t save"}
             </div>
-            <button type="button" className={styles.iconButton} onClick={undo} disabled={!pastDocuments.length} aria-label="Undo last document edit" title="Undo"><RotateCcw /></button>
-            <button type="button" className={styles.iconButton} onClick={redo} disabled={!futureDocuments.length} aria-label="Redo last document edit" title="Redo"><RotateCw /></button>
-            <button type="button" className={styles.downloadButton} onClick={handlePrint}><Download /> Print / save PDF</button>
           </div>
         </div>
 
-        <div className={styles.navigationRow}>
-          <nav className={styles.modeTabs} aria-label="Builder modes">
-            {modes.map((item) => {
-              const Icon = item.icon;
-              return <button key={item.id} type="button" className={mode === item.id ? styles.activeMode : ""} onClick={() => setMode(item.id)} aria-current={mode === item.id ? "page" : undefined}>
-                <Icon /><span><strong>{item.label}</strong><small>{item.description}</small></span>
-              </button>;
-            })}
-          </nav>
-          <div className={styles.draftActions}>
-            <button type="button" onClick={() => replaceDraft("a blank resume", startBlankResume, "Started a blank resume.")}><FilePlus /> New</button>
-            <button type="button" onClick={() => replaceDraft("the sample resume", loadSampleResume, "Loaded sample content.")}>Sample</button>
-            <button type="button" onClick={() => replaceDraft("a reset draft", resetResume, "Draft reset.")}>Reset</button>
-            <button type="button" onClick={exportProject}><Download /> JSON</button>
-            <button type="button" onClick={() => importInputRef.current?.click()}><Upload /> Import</button>
+        <nav className={styles.modeTabs} aria-label="Builder workspace">
+          {modes.map((item) => {
+            const Icon = item.icon;
+            const isActive = mode === item.id;
+            return <button key={item.id} type="button" className={isActive ? styles.activeMode : ""} onClick={() => setMode(item.id)} aria-current={isActive ? "page" : undefined} aria-label={item.accessibleLabel}>
+              <Icon aria-hidden="true" /><span>{item.label}</span>
+            </button>;
+          })}
+        </nav>
+
+        <div className={styles.headerActions}>
+          <div className={styles.historyActions} aria-label="Edit history">
+            <button type="button" className={styles.iconButton} onClick={undo} disabled={!pastDocuments.length} aria-label="Undo last document edit" title="Undo"><RotateCcw /></button>
+            <button type="button" className={styles.iconButton} onClick={redo} disabled={!futureDocuments.length} aria-label="Redo last document edit" title="Redo"><RotateCw /></button>
+          </div>
+          <button type="button" className={styles.downloadButton} onClick={handlePrint} aria-label="Print or save resume as PDF"><Download aria-hidden="true" /> Print / PDF</button>
+          <div className={styles.fileMenu} ref={fileMenuRef}>
+            <button
+              type="button"
+              className={styles.moreButton}
+              aria-label="Open resume actions"
+              aria-haspopup="menu"
+              aria-expanded={isFileMenuOpen}
+              onClick={() => setIsFileMenuOpen((isOpen) => !isOpen)}
+            >
+              <MoreHorizontal aria-hidden="true" />
+            </button>
+            {isFileMenuOpen ? (
+              <div className={styles.fileMenuPopover} role="menu" aria-label="Resume actions">
+                <button type="button" role="menuitem" onClick={() => { setIsFileMenuOpen(false); replaceDraft("a blank resume", startBlankResume, "Started a blank resume."); }}><FilePlus aria-hidden="true" /><span><strong>Start a new resume</strong><small>Replace this draft with a blank one</small></span></button>
+                <button type="button" role="menuitem" onClick={() => { setIsFileMenuOpen(false); replaceDraft("the sample resume", loadSampleResume, "Loaded sample content."); }}><Edit3 aria-hidden="true" /><span><strong>Load sample resume</strong><small>Explore the builder with example content</small></span></button>
+                <span className={styles.menuDivider} aria-hidden="true" />
+                <button type="button" role="menuitem" onClick={() => { setIsFileMenuOpen(false); exportProject(); }}><Download aria-hidden="true" /><span><strong>Export backup</strong><small>Download a ResumeCraft project file</small></span></button>
+                <button type="button" role="menuitem" onClick={() => { setIsFileMenuOpen(false); importInputRef.current?.click(); }}><Upload aria-hidden="true" /><span><strong>Restore backup</strong><small>Open a ResumeCraft project file</small></span></button>
+              </div>
+            ) : null}
             <input ref={importInputRef} className={styles.fileInput} type="file" accept="application/json,.json" onChange={importProject} />
           </div>
         </div>
