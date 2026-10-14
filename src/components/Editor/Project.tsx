@@ -2,14 +2,14 @@ import React, { FC } from "react";
 import InputControl from "../InputControl/InputControl";
 import styles from "./Editor.module.css";
 import { FormValues } from "../../types";
+import BulletListEditor from "./BulletListEditor";
 
 interface ProjectProps {
   values: FormValues;
   setValues: React.Dispatch<React.SetStateAction<FormValues>>;
-  handlePointUpdate: (value: string, index: number) => void;
 }
 
-const Project: FC<ProjectProps> = ({ values, setValues, handlePointUpdate }) => {
+const Project: FC<ProjectProps> = ({ values, setValues }) => {
   return (
     <div className={styles.detail}>
       <div className={styles.row}>
@@ -48,29 +48,11 @@ const Project: FC<ProjectProps> = ({ values, setValues, handlePointUpdate }) => 
           }
         />
       </div>
-      <div className={styles.column}>
-        <label>Enter project description</label>
-        <InputControl
-          placeholder="Line 1"
-          value={values.points ? values.points[0] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 0)}
-        />
-        <InputControl
-          placeholder="Line 2"
-          value={values.points ? values.points[1] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 1)}
-        />
-        <InputControl
-          placeholder="Line 3"
-          value={values.points ? values.points[2] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 2)}
-        />
-        <InputControl
-          placeholder="Line 4"
-          value={values.points ? values.points[3] : ""}
-          onChange={(event) => handlePointUpdate(event.target.value, 3)}
-        />
+      <div className={styles.row}>
+        <InputControl label="Start Date" type="date" value={values.startDate || ""} onChange={(event) => setValues((prev) => ({ ...prev, startDate: event.target.value }))} />
+        <InputControl label="End Date" type="date" value={values.endDate || ""} onChange={(event) => setValues((prev) => ({ ...prev, endDate: event.target.value }))} />
       </div>
+      <BulletListEditor label="Project description" points={values.points || []} onChange={(points) => setValues((prev) => ({ ...prev, points }))} />
     </div>
   );
 };

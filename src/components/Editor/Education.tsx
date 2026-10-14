@@ -21,6 +21,10 @@ const Education: FC<EducationProps> = ({ values, setValues }) => {
           }
         />
       </div>
+      <div className={styles.row}>
+        <InputControl label="Grade" value={values.grade || ""} placeholder="CGPA, GPA, or distinction" onChange={(event) => setValues((prev) => ({ ...prev, grade: event.target.value }))} />
+        <InputControl label="Location" value={values.location || ""} placeholder="City, Country" onChange={(event) => setValues((prev) => ({ ...prev, location: event.target.value }))} />
+      </div>
       <InputControl
         label="College/School Name"
         value={values.college || ""}

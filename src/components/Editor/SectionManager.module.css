@@ -1,0 +1,11 @@
+.manager { border: 1px solid #ded4ca; border-radius: 10px; background: #fbf8f4; }
+.manager summary { padding: 12px 14px; color: #3e3732; font-size: .78rem; font-weight: 800; cursor: pointer; }
+.manager summary span { margin-left: 7px; color: #887d74; font-size: .64rem; font-weight: 650; }
+.body { padding: 0 14px 14px; }.help { margin: 0 0 10px; color: #796f67; font-size: .68rem; line-height: 1.45; }
+.rows { display: grid; gap: 6px; }.row { padding: 7px; display: grid; grid-template-columns: minmax(130px,1fr) auto; gap: 8px; border: 1px solid #e3dad2; border-radius: 8px; background: #fff; }
+.row>input,.addCustom input { min-width: 0; padding: 7px 9px; border: 1px solid #d9cfc6; border-radius: 6px; font: inherit; font-size: .7rem; }
+.actions { display: flex; gap: 3px; }.actions button { width: 29px!important; height: 29px; padding: 0!important; display: grid!important; place-items: center; border: 1px solid #ddd3ca!important; border-radius: 6px!important; background: #fff!important; color: #625850!important; }
+.actions button:disabled { opacity: .35; cursor: not-allowed; }.actions svg { width: 13px; height: 13px; }
+.addCustom { margin-top: 13px; padding-top: 12px; border-top: 1px solid #e2d9d1; }.addCustom>label { display: block; margin-bottom: 7px; color: #514943; font-size: .7rem; font-weight: 750; }.addCustom>div { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; }.addCustom button,.deleted button { min-height: 34px; padding: 0 9px!important; border: 1px solid #cfa98f!important; border-radius: 7px!important; background: #fff7f1!important; color: #94401e!important; font-size: .66rem!important; letter-spacing: 0!important; }.addCustom svg,.deleted svg { width: 13px; }
+.deleted { margin-top: 12px; }.deleted>p { margin: 0 0 7px; color: #776d65; font-size: .68rem; font-weight: 750; }.deleted>div { display: flex; flex-wrap: wrap; gap: 6px; }
+@media (max-width:600px) { .row { grid-template-columns: 1fr; }.actions { justify-content: flex-start; }.addCustom>div { grid-template-columns: 1fr 1fr; }.addCustom input { grid-column: 1/-1; } }

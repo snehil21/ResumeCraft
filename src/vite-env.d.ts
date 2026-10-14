@@ -32,3 +32,23 @@ declare module '*.gif' {
   const content: string;
   export default content;
 }
+
+declare module '*?url' {
+  const url: string;
+  export default url;
+}
+
+declare module 'mammoth/mammoth.browser' {
+  interface MammothMessage {
+    message: string;
+  }
+
+  const mammoth: {
+    extractRawText: (input: { arrayBuffer: ArrayBuffer }) => Promise<{
+      value: string;
+      messages: MammothMessage[];
+    }>;
+  };
+
+  export default mammoth;
+}

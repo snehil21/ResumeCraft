@@ -22,5 +22,6 @@ input:hover {
 }
 
 input:focus {
-  border: 1px solid #239ce2;
+  border: 1px solid #b75024;
+  box-shadow: 0 0 0 3px rgba(183, 80, 36, 0.12);
 }
