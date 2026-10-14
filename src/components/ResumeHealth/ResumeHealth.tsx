@@ -26,7 +26,7 @@ const ResumeHealth: FC<ResumeHealthProps> = ({ document, pageCount, onNavigate }
       <div>
         <p>Local document review</p>
         <h3 id="resume-health-heading">Resume Health</h3>
-        <span>Deterministic checks in your browser—not an ATS score.</span>
+        <span>Deterministic checks in your browser. This is not an ATS score.</span>
       </div>
       <div className={report.counts.critical ? styles.needsAttention : styles.goodFoundation}>
         <strong>{report.counts.critical ? "Needs attention" : "Good foundation"}</strong>

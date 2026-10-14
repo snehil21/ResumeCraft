@@ -231,7 +231,7 @@ const Editor: FC<EditorProps> = ({ sections }) => {
   const optionLabel = (key: string) => {
     const section = document.resumeInformation[key];
     const count = section.details?.filter((item) => Object.entries(item).some(([field, value]) => field !== "id" && String(value ?? "").trim())).length;
-    const suffix = section.visible === false ? " — hidden" : typeof count === "number" && count > 0 ? ` — ${count}` : "";
+    const suffix = section.visible === false ? " (hidden)" : typeof count === "number" && count > 0 ? ` (${count})` : "";
     return `${section.sectionTitle || sections[key as keyof typeof sections] || "Section"}${suffix}`;
   };
   const renderOptions = (keys: string[]) => keys.map((key) => <option key={key} value={key}>{optionLabel(key)}</option>);
