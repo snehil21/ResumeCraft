@@ -3,6 +3,7 @@ import InputControl from "../InputControl/InputControl";
 import styles from "./Editor.module.css";
 import { FormValues } from "../../types";
 import BulletListEditor from "./BulletListEditor";
+import MonthYearControl from "./MonthYearControl";
 
 interface WorkExpProps {
   values: FormValues;
@@ -41,21 +42,19 @@ const WorkExp: FC<WorkExpProps> = ({ values, setValues }) => {
         />
       </div>
       <div className={styles.row}>
-        <InputControl
+        <MonthYearControl
           label="Start Date"
-          type="date"
           value={values.startDate || ""}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, startDate: event.target.value }))
+          onChange={(value) =>
+            setValues((prev) => ({ ...prev, startDate: value }))
           }
         />
-        <InputControl
+        <MonthYearControl
           label="End Date"
-          type="date"
           disabled={Boolean(values.currentRole)}
           value={values.endDate || ""}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, endDate: event.target.value }))
+          onChange={(value) =>
+            setValues((prev) => ({ ...prev, endDate: value }))
           }
         />
       </div>

@@ -3,6 +3,7 @@ import InputControl from "../InputControl/InputControl";
 import styles from "./Editor.module.css";
 import { FormValues } from "../../types";
 import BulletListEditor from "./BulletListEditor";
+import MonthYearControl from "./MonthYearControl";
 
 interface ProjectProps {
   values: FormValues;
@@ -49,8 +50,8 @@ const Project: FC<ProjectProps> = ({ values, setValues }) => {
         />
       </div>
       <div className={styles.row}>
-        <InputControl label="Start Date" type="date" value={values.startDate || ""} onChange={(event) => setValues((prev) => ({ ...prev, startDate: event.target.value }))} />
-        <InputControl label="End Date" type="date" value={values.endDate || ""} onChange={(event) => setValues((prev) => ({ ...prev, endDate: event.target.value }))} />
+        <MonthYearControl label="Start Date" value={values.startDate || ""} onChange={(value) => setValues((prev) => ({ ...prev, startDate: value }))} />
+        <MonthYearControl label="End Date" value={values.endDate || ""} onChange={(value) => setValues((prev) => ({ ...prev, endDate: value }))} />
       </div>
       <BulletListEditor label="Project description" points={values.points || []} onChange={(points) => setValues((prev) => ({ ...prev, points }))} />
     </div>

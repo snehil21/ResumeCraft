@@ -2,6 +2,7 @@ import React, { FC } from "react";
 import InputControl from "../InputControl/InputControl";
 import styles from "./Editor.module.css";
 import { FormValues } from "../../types";
+import MonthYearControl from "./MonthYearControl";
 
 interface EducationProps {
   values: FormValues;
@@ -34,22 +35,18 @@ const Education: FC<EducationProps> = ({ values, setValues }) => {
         }
       />
       <div className={styles.row}>
-        <InputControl
+        <MonthYearControl
           label="Start Date"
-          type="date"
-          placeholder="Enter start date of this education"
           value={values.startDate || ""}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, startDate: event.target.value }))
+          onChange={(value) =>
+            setValues((prev) => ({ ...prev, startDate: value }))
           }
         />
-        <InputControl
+        <MonthYearControl
           label="End Date"
-          type="date"
-          placeholder="Enter end date of this education"
           value={values.endDate || ""}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, endDate: event.target.value }))
+          onChange={(value) =>
+            setValues((prev) => ({ ...prev, endDate: value }))
           }
         />
       </div>

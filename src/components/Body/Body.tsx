@@ -256,7 +256,6 @@ const Body: FC = () => {
       <main className={styles.main}>
         <section className={`${styles.workspacePanel} ${mobilePane === "preview" ? styles.mobileHidden : ""}`}>
           {mode === "content" ? <>
-            <div className={styles.panelIntro}><p>Content mode</p><h2>Build the story.</h2><span>Every field updates the document immediately.</span></div>
             <Editor sections={{ ...SECTION_LABELS }} />
           </> : null}
 

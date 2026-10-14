@@ -13,17 +13,17 @@ const BasicInfo: FC<BasicInfoProps> = ({ values, setValues }) => {
     <div className={styles.detail}>
       <div className={styles.row}>
         <InputControl
-          label="Name"
-          placeholder="Enter your full name eg. Jhon Doe"
+          label="Full name"
+          placeholder="Enter your full name"
           value={values.name || ""}
           onChange={(event) =>
             setValues((prev) => ({ ...prev, name: event.target.value }))
           }
         />
         <InputControl
-          label="Title"
+          label="Professional title"
           value={values.title || ""}
-          placeholder="Enter your title eg. Frontend developer"
+          placeholder="e.g. Software Engineer"
           onChange={(event) =>
             setValues((prev) => ({ ...prev, title: event.target.value }))
           }
@@ -35,17 +35,17 @@ const BasicInfo: FC<BasicInfoProps> = ({ values, setValues }) => {
       </div>
       <div className={styles.row}>
         <InputControl
-          label="Linkedin Link"
+          label="LinkedIn"
           value={values.linkedin || ""}
-          placeholder="Enter your Linkedin profile link"
+          placeholder="linkedin.com/in/your-name"
           onChange={(event) =>
             setValues((prev) => ({ ...prev, linkedin: event.target.value }))
           }
         />
         <InputControl
-          label="Github Link"
+          label="GitHub"
           value={values.github || ""}
-          placeholder="Enter your Github profile link"
+          placeholder="github.com/your-name"
           onChange={(event) =>
             setValues((prev) => ({ ...prev, github: event.target.value }))
           }
@@ -61,7 +61,7 @@ const BasicInfo: FC<BasicInfoProps> = ({ values, setValues }) => {
           }
         />
         <InputControl
-          label="Enter phone"
+          label="Phone"
           value={values.phone || ""}
           placeholder="Enter your phone number"
           onChange={(event) =>
