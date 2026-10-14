@@ -37,6 +37,7 @@ export interface ParsedResumeSection {
   content: string;
   lines: string[];
   dateRanges: DetectedDateRange[];
+  links: DetectedLink[];
   confidence: ParserConfidence;
 }
 
@@ -129,7 +130,7 @@ const ALIAS_TO_SECTION = new Map<string, ResumeSectionType>(
 
 const EMAIL_PATTERN = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
 const PHONE_PATTERN = /\+?\d[\d\s().-]{5,}\d/;
-const URL_PATTERN = /(?:https?:\/\/|www\.)[^\s|,;]+|\b(?:linkedin\.com\/in|github\.com)\/[^\s|,;]+/gi;
+const URL_PATTERN = /(?:https?:\/\/|www\.)[^\s|,;]+|\b(?:linkedin\.com\/in|github\.com)\/[^\s|,;]+|(?<![@\w])(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/[^\s|,;]*)?/gi;
 const MONTH = "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)";
 const DATE_TOKEN = `(?:${MONTH}\\s+)?(?:19|20)\\d{2}|(?:0?[1-9]|1[0-2])[/.](?:19|20)\\d{2}`;
 const DATE_RANGE_PATTERN = new RegExp(
@@ -151,6 +152,7 @@ interface ContentBlock {
 
 const BULLET_PATTERN = /^(?:[-*•▪◦‣]|\d+[.)])\s+/;
 const LOCATION_LABEL_PATTERN = /^(?:location|based in)\s*:\s*/i;
+const KNOWN_CITY_PATTERN = /\b(?:Bengaluru|Bangalore|Hyderabad|Pune|Mumbai|Chennai|Kolkata|Noida|Gurugram|Gurgaon|Ahmedabad|New Delhi|Delhi|London|Dublin|Toronto|Vancouver|Singapore|Sydney|Melbourne|Dubai|Berlin|Paris|Amsterdam|New York|San Francisco|Seattle|Austin|Boston|Chicago)\b/i;
 
 const normalizeHeading = (line: string): string =>
   line
@@ -222,6 +224,20 @@ const canonicalLink = (value: string): string =>
     .replace(/\/$/, "")
     .toLowerCase();
 
+const detectLinks = (lines: SourceLine[]): DetectedLink[] => {
+  const links: DetectedLink[] = [];
+  lines.forEach((line) => {
+    URL_PATTERN.lastIndex = 0;
+    Array.from(line.text.matchAll(URL_PATTERN), (match) => match[0]).forEach((rawValue) => {
+      const value = normalizeDetectedLink(rawValue);
+      if (!links.some((link) => canonicalLink(link.value) === canonicalLink(value))) {
+        links.push({ value, type: detectLinkType(value), confidence: "high", lineNumber: line.lineNumber });
+      }
+    });
+  });
+  return links;
+};
+
 const isLocationCandidate = (value: string): boolean => {
   const candidate = value.trim().replace(LOCATION_LABEL_PATTERN, "");
   const words = candidate.split(/\s+/);
@@ -235,6 +251,23 @@ const splitContactSegments = (line: SourceLine): SourceLine[] =>
     .split(/\s*[|•]\s*/)
     .map((text) => ({ text: text.trim(), lineNumber: line.lineNumber }))
     .filter((segment) => segment.text);
+
+const findLocation = (lines: SourceLine[]): SourceLine | undefined => {
+  const segments = lines.flatMap(splitContactSegments);
+  const labelled = segments.find((segment) => LOCATION_LABEL_PATTERN.test(segment.text));
+  if (labelled) return labelled;
+
+  for (const line of lines) {
+    const match = line.text.match(KNOWN_CITY_PATTERN);
+    if (!match || match.index === undefined) continue;
+    const suffix = line.text.slice(match.index).match(
+      /^[\p{L}.'-]+(?:\s+[\p{L}.'-]+){0,2}(?:,\s*[\p{L}.'-]+(?:\s+[\p{L}.'-]+){0,3}){0,2}/u
+    )?.[0];
+    return { text: suffix?.trim() || match[0], lineNumber: line.lineNumber };
+  }
+
+  return segments.find((segment) => isLocationCandidate(segment.text));
+};
 
 const stripDateRanges = (text: string): string => {
   DATE_RANGE_PATTERN.lastIndex = 0;
@@ -302,6 +335,7 @@ const parseContact = (lines: SourceLine[], embeddedLinks: string[]) => {
       consumed.add(line.lineNumber);
     }
 
+    URL_PATTERN.lastIndex = 0;
     const matches = Array.from(line.text.matchAll(URL_PATTERN), (match) => match[0]);
     matches.forEach((match) => {
       links.push({
@@ -349,9 +383,7 @@ const parseContact = (lines: SourceLine[], embeddedLinks: string[]) => {
     : null;
   if (nameLine) consumed.add(nameLine.lineNumber);
 
-  const locationSegment = lines.flatMap(splitContactSegments).find((segment) =>
-    isLocationCandidate(segment.text)
-  );
+  const locationSegment = findLocation(lines);
   const location = locationSegment
     ? {
         value: locationSegment.text.replace(LOCATION_LABEL_PATTERN, "").trim(),
@@ -428,6 +460,7 @@ export const parseResumeText = (originalText: string, embeddedLinks: string[] = 
           content: entryLines.map((line) => line.text).join("\n").trim(),
           lines: entryLines.map((line) => line.text),
           dateRanges: detectDateRanges(entryLines),
+          links: detectLinks(entryLines),
           confidence: "high",
         });
       });

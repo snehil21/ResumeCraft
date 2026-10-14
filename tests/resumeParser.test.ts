@@ -125,6 +125,42 @@ Builds reliable systems.`);
   assert.equal(result.contact.location?.confidence, "medium");
 });
 
+test("detects a standalone city in the resume header", () => {
+  const result = parseResumeText(`Jordan Example
+Backend Engineer
+Bengaluru
+jordan@example.test
+Summary
+Builds reliable systems.`);
+
+  assert.equal(result.contact.location?.value, "Bengaluru");
+});
+
+test("keeps links attached to the section where they appear", () => {
+  const result = parseResumeText(`Jordan Example
+Projects
+ResumeCraft
+GitHub https://github.com/jordan-example/resumecraft
+Live https://resume.example.test
+2024 - Present`);
+
+  assert.deepEqual(
+    result.sections.projects[0].links.map((link) => link.value),
+    ["https://github.com/jordan-example/resumecraft", "https://resume.example.test"]
+  );
+});
+
+test("detects a bare portfolio domain without treating an email domain as a link", () => {
+  const result = parseResumeText(`Jordan Example
+Backend Engineer
+jordan@example.test
+portfolio.example.dev
+Summary
+Builds reliable systems.`);
+
+  assert.deepEqual(result.contact.links.map((link) => link.value), ["portfolio.example.dev"]);
+});
+
 test("splits date-bounded work history into separate experience entries", () => {
   const result = parseResumeText(`Jordan Example
 Professional Experience

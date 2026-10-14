@@ -81,20 +81,99 @@ const normalizeEmbeddedLink = (value: string): string | null => {
 const uniqueLinks = (links: string[]): string[] =>
   Array.from(new Set(links.map(normalizeEmbeddedLink).filter((link): link is string => Boolean(link))));
 
-const extractLinksFromHtml = (html: string): string[] => {
-  const links: string[] = [];
-  const hrefPattern = /<a\b[^>]*\bhref=(?:"([^"]*)"|'([^']*)')[^>]*>/gi;
+interface HtmlLink {
+  label: string;
+  href: string;
+}
+
+const decodeHtml = (value: string): string =>
+  value
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">");
+
+export const extractLinksFromHtml = (html: string): HtmlLink[] => {
+  const links: HtmlLink[] = [];
+  const hrefPattern = /<a\b[^>]*\bhref=(?:"([^"]*)"|'([^']*)')[^>]*>([\s\S]*?)<\/a>/gi;
   let match = hrefPattern.exec(html);
   while (match) {
-    links.push(
-      (match[1] || match[2] || "")
-        .replace(/&amp;/gi, "&")
-        .replace(/&quot;/gi, '"')
-        .replace(/&#39;/gi, "'")
-    );
+    const href = decodeHtml(match[1] || match[2] || "");
+    const normalized = normalizeEmbeddedLink(href);
+    if (normalized) links.push({ label: decodeHtml(match[3]).trim(), href: normalized });
     match = hrefPattern.exec(html);
   }
-  return uniqueLinks(links);
+  return links.filter(
+    (link, index) => links.findIndex((candidate) => candidate.href === link.href) === index
+  );
+};
+
+export const attachHtmlLinksToText = (text: string, links: HtmlLink[]): string => {
+  let result = text;
+  let searchFrom = 0;
+  links.forEach(({ label, href }) => {
+    if (!label) return;
+    const index = result.indexOf(label, searchFrom);
+    if (index === -1) return;
+    searchFrom = index + label.length;
+    if (canonicalText(label) === canonicalText(href)) return;
+    const nearby = result.slice(index, index + label.length + href.length + 3);
+    if (!nearby.includes(href)) {
+      result = `${result.slice(0, index + label.length)} ${href}${result.slice(index + label.length)}`;
+      searchFrom += href.length + 1;
+    }
+  });
+  return result;
+};
+
+const canonicalText = (value: string): string =>
+  value.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "").toLowerCase();
+
+interface PositionedTextItem {
+  str: string;
+  transform: number[];
+  width: number;
+  height: number;
+  hasEOL?: boolean;
+}
+
+interface PositionedLink {
+  rect?: number[];
+  url: string;
+}
+
+export const attachPdfLinksToTextItems = (
+  items: PositionedTextItem[],
+  links: PositionedLink[]
+): Map<number, string[]> => {
+  const matches = new Map<number, string[]>();
+  links.forEach((link) => {
+    if (!link.rect || link.rect.length < 4) return;
+    const [left, bottom, right, top] = link.rect;
+    const linkCenterX = (left + right) / 2;
+    const linkCenterY = (bottom + top) / 2;
+    let bestIndex = -1;
+    let bestDistance = Number.POSITIVE_INFINITY;
+    items.forEach((item, index) => {
+      const x = item.transform[4] ?? 0;
+      const y = item.transform[5] ?? 0;
+      const height = item.height || Math.abs(item.transform[3] ?? 0) || 10;
+      const itemLeft = x - 3;
+      const itemRight = x + item.width + 3;
+      const itemBottom = y - 3;
+      const itemTop = y + height + 3;
+      if (linkCenterX < itemLeft || linkCenterX > itemRight || linkCenterY < itemBottom || linkCenterY > itemTop) return;
+      const distance = Math.abs(linkCenterX - (x + item.width / 2)) + Math.abs(linkCenterY - (y + height / 2));
+      if (distance < bestDistance) {
+        bestIndex = index;
+        bestDistance = distance;
+      }
+    });
+    if (bestIndex >= 0) matches.set(bestIndex, [...(matches.get(bestIndex) ?? []), link.url]);
+  });
+  return matches;
 };
 
 const extractPdfText = async (file: File): Promise<ResumeTextExtraction> => {
@@ -126,21 +205,28 @@ const extractPdfText = async (file: File): Promise<ResumeTextExtraction> => {
         page.getTextContent(),
         page.getAnnotations({ intent: "display" }),
       ]);
-      let pageText = "";
-
-      content.items.forEach((item) => {
-        if (!("str" in item)) return;
-        pageText += item.str;
-        pageText += item.hasEOL ? "\n" : " ";
-      });
-
+      const positionedLinks: PositionedLink[] = [];
       annotations.forEach((annotation) => {
         const candidate = "url" in annotation && typeof annotation.url === "string"
           ? annotation.url
           : "unsafeUrl" in annotation && typeof annotation.unsafeUrl === "string"
             ? annotation.unsafeUrl
             : "";
-        if (candidate) embeddedLinks.push(candidate);
+        if (candidate) {
+          embeddedLinks.push(candidate);
+          positionedLinks.push({ rect: "rect" in annotation ? annotation.rect : undefined, url: candidate });
+        }
+      });
+
+      const textItems = content.items.filter((item): item is typeof item & PositionedTextItem => "str" in item);
+      const itemLinks = attachPdfLinksToTextItems(textItems, positionedLinks);
+      let pageText = "";
+      textItems.forEach((item, index) => {
+        pageText += item.str;
+        (itemLinks.get(index) ?? []).forEach((link) => {
+          if (!item.str.includes(link)) pageText += ` ${link}`;
+        });
+        pageText += item.hasEOL ? "\n" : " ";
       });
 
       pages.push(pageText.trim());
@@ -198,9 +284,10 @@ const extractDocxText = async (file: File): Promise<ResumeTextExtraction> => {
       mammoth.extractRawText({ arrayBuffer: arrayBuffer.slice(0) }),
       mammoth.convertToHtml({ arrayBuffer: arrayBuffer.slice(0) }),
     ]);
-    const extraction = createExtractionResult("docx", result.value, file.name, {
+    const htmlLinks = extractLinksFromHtml(htmlResult.value);
+    const extraction = createExtractionResult("docx", attachHtmlLinksToText(result.value, htmlLinks), file.name, {
       warnings: [...result.messages, ...htmlResult.messages].map((message) => message.message),
-      links: extractLinksFromHtml(htmlResult.value),
+      links: uniqueLinks(htmlLinks.map((link) => link.href)),
     });
 
     if (!extraction.text) {

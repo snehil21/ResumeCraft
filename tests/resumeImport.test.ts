@@ -112,3 +112,39 @@ Software Development Engineer I   Remote
   assert.equal(work[1].companyName, "Cimpress India");
   assert.equal(work[1].location, "Remote");
 });
+
+test("maps a portfolio link to the website field", () => {
+  const review = createImportReviewDraft(
+    parseResumeText(`Jordan Example
+Backend Engineer
+jordan@example.test
+Summary
+Builds reliable systems.`, ["https://portfolio.example.test"])
+  );
+  const information = buildImportedResumeInformation(review);
+  const basic = information.basicInfo.detail as { website?: string };
+
+  assert.equal(review.contact.website, "https://portfolio.example.test");
+  assert.equal(basic.website, "https://portfolio.example.test");
+});
+
+test("maps links found in a project into project link fields", () => {
+  const information = buildImportedResumeInformation(
+    createImportReviewDraft(parseResumeText(`Jordan Example
+Projects
+ResumeCraft
+GitHub https://github.com/jordan-example/resumecraft
+Live https://resume.example.test
+2024 - Present
+- Built a local-first resume editor.`))
+  );
+  const project = information.project.details?.[0] as {
+    title?: string;
+    github?: string;
+    link?: string;
+  };
+
+  assert.equal(project.title, "ResumeCraft");
+  assert.equal(project.github, "https://github.com/jordan-example/resumecraft");
+  assert.equal(project.link, "https://resume.example.test");
+});

@@ -1,5 +1,4 @@
 import React, { FC } from "react";
-import InputControl from "../InputControl/InputControl";
 import styles from "./Editor.module.css";
 import { FormValues } from "../../types";
 
@@ -11,14 +10,17 @@ interface SummaryProps {
 const Summary: FC<SummaryProps> = ({ values, setValues }) => {
   return (
     <div className={styles.detail}>
-      <InputControl
-        label="Summary"
-        value={values.summary || ""}
-        placeholder="Enter your objective/summary"
-        onChange={(event) =>
-          setValues((prev) => ({ ...prev, summary: event.target.value }))
-        }
-      />
+      <label className={styles.summaryField}>
+        <span>Summary</span>
+        <textarea
+          value={values.summary || ""}
+          placeholder="Enter your objective/summary"
+          rows={8}
+          onChange={(event) =>
+            setValues((prev) => ({ ...prev, summary: event.target.value }))
+          }
+        />
+      </label>
     </div>
   );
 };

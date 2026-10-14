@@ -30,6 +30,7 @@ export interface ImportReviewSection {
   include: boolean;
   needsReview: boolean;
   dateRanges: ImportReviewDateRange[];
+  links: string[];
 }
 
 export interface ImportReviewUnrecognized {
@@ -48,6 +49,7 @@ export interface ImportReviewContact {
   location: string;
   linkedin: string;
   github: string;
+  website: string;
   otherLinks: string;
   reviewFields: string[];
 }
@@ -81,8 +83,11 @@ export const createImportReviewDraft = (parsed: ParsedResume): ImportReviewDraft
   const reviewLines = new Set(parsed.needsReview.map((item) => item.lineNumber));
   const linkedin = parsed.contact.links.find((link) => link.type === "linkedin")?.value ?? "";
   const github = parsed.contact.links.find((link) => link.type === "github")?.value ?? "";
+  const websiteLink = parsed.contact.links.find((link) => link.type === "portfolio") ??
+    parsed.contact.links.find((link) => link.type === "other");
+  const website = websiteLink?.value ?? "";
   const otherLinks = parsed.contact.links
-    .filter((link) => link.type !== "linkedin" && link.type !== "github")
+    .filter((link) => link.type !== "linkedin" && link.type !== "github" && link !== websiteLink)
     .map((link) => link.value)
     .join("\n");
 
@@ -99,6 +104,7 @@ export const createImportReviewDraft = (parsed: ParsedResume): ImportReviewDraft
         dateRanges: section.dateRanges.map((range, dateIndex) =>
           toReviewDateRange(range, id, dateIndex)
         ),
+        links: section.links.map((link) => link.value),
       };
     })
   );
@@ -121,6 +127,7 @@ export const createImportReviewDraft = (parsed: ParsedResume): ImportReviewDraft
       location: parsed.contact.location?.value ?? "",
       linkedin,
       github,
+      website,
       otherLinks,
       reviewFields: Object.entries(contactEntries)
         .filter(([, value]) => value && value.confidence !== "high")
@@ -299,13 +306,21 @@ const createEducationDetails = (draft: ImportReviewDraft): EducationDetail[] =>
 
 const createProjectDetails = (draft: ImportReviewDraft): ProjectDetail[] =>
   getIncludedSections(draft, "projects").map((section, index) => {
-    const lines = withoutDateLines(cleanLines(section.content), section.dateRanges);
+    const exactLinks = new Set(section.links.map((link) => link.toLowerCase()));
+    const lines = withoutDateLines(cleanLines(section.content), section.dateRanges).filter((line) => {
+      const normalized = line.replace(/^(?:github|website|portfolio|demo|live)\s*:?[\s-]*/i, "").trim().toLowerCase();
+      return !exactLinks.has(normalized) && !section.links.some((link) => normalized === link.toLowerCase());
+    });
     const dateRange = section.dateRanges[0];
+    const github = section.links.find((link) => /github\.com/i.test(link));
+    const link = section.links.find((value) => value !== github);
     return {
       id: `import-project-${index}`,
       title: lines[0] ?? "",
       overview: lines[1] ?? "",
       points: lines.slice(2),
+      github,
+      link,
       startDate: dateRange?.start,
       endDate: dateRange?.isCurrent ? "Present" : dateRange?.end,
     };
@@ -344,6 +359,7 @@ export const buildImportedResumeInformation = (
     phone: draft.contact.phone,
     linkedin: draft.contact.linkedin,
     github: draft.contact.github,
+    website: draft.contact.website,
     location: draft.contact.location,
   };
 
