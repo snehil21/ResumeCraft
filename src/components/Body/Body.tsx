@@ -183,7 +183,7 @@ const Body: FC = () => {
             </div>
             <button type="button" className={styles.iconButton} onClick={undo} disabled={!pastDocuments.length} aria-label="Undo last document edit" title="Undo"><RotateCcw /></button>
             <button type="button" className={styles.iconButton} onClick={redo} disabled={!futureDocuments.length} aria-label="Redo last document edit" title="Redo"><RotateCw /></button>
-            <button type="button" className={styles.downloadButton} onClick={handlePrint}><Download /> Download PDF</button>
+            <button type="button" className={styles.downloadButton} onClick={handlePrint}><Download /> Print / save PDF</button>
           </div>
         </div>
 
@@ -228,7 +228,7 @@ const Body: FC = () => {
           {mode === "review" ? <div className={styles.modePanel}>
             <div className={styles.panelIntro}><p>Review mode</p><h2>Finish with confidence.</h2><span>Use local checks to find specific improvements before creating the PDF.</span></div>
             <ResumeHealth document={document} pageCount={previewMetrics.pageCount} onNavigate={navigateToHealthTarget} />
-            <button type="button" className={styles.reviewDownload} onClick={handlePrint}><Download /> Download reviewed PDF</button>
+            <button type="button" className={styles.reviewDownload} onClick={handlePrint}><Download /> Print / save PDF</button>
           </div> : null}
         </section>
 

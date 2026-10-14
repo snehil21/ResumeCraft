@@ -52,7 +52,7 @@ const Start: FC = () => {
           <h1>How would you like to begin?</h1>
           <p className={styles.description}>
             Start with an empty document, explore a complete example, or bring
-            your existing resume when local import becomes available.
+            your existing resume into the local editor.
           </p>
           <p className={styles.privacyNote}>
             <Lock aria-hidden="true" /> No account required. Your resume stays in your browser.
@@ -99,8 +99,8 @@ const Start: FC = () => {
               <p className={styles.optionLabel}>Bring what you have</p>
               <h2>Upload an existing resume</h2>
               <p>
-                Extract text from a PDF or DOCX locally. Parsing and field-by-field
-                review will be added in the next steps.
+                Extract text from a PDF or DOCX locally, review the detected
+                fields, and decide exactly what enters your draft.
               </p>
             </div>
             <button

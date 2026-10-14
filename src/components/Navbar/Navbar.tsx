@@ -9,12 +9,12 @@ import styles from "./Navbar.module.css";
 const navigationItems = [
   { label: "Features", href: "/#features" },
   { label: "Templates", href: "/#templates" },
-  { label: "How it works", href: "/#how-it-works" },
   { label: "Privacy", href: "/#privacy" },
 ];
 
 const Navbar: FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
   const location = useLocation();
 
   useEffect(() => {
@@ -32,17 +32,54 @@ const Navbar: FC = () => {
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isMenuOpen]);
 
+  useEffect(() => {
+    if (location.pathname !== "/") {
+      setActiveSection("");
+      return undefined;
+    }
+
+    const sectionIds = navigationItems.map((item) => item.href.split("#")[1]);
+    const updateActiveSection = () => {
+      if (window.scrollY < 160) {
+        setActiveSection("");
+        return;
+      }
+
+      const marker = 150;
+      const visibleSection = sectionIds.reduce((current, id) => {
+        const section = document.getElementById(id);
+        return section && section.getBoundingClientRect().top <= marker ? id : current;
+      }, "");
+      setActiveSection(visibleSection);
+    };
+
+    updateActiveSection();
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    return () => window.removeEventListener("scroll", updateActiveSection);
+  }, [location.pathname]);
+
+  const scrollHomeToTop = () => {
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  };
+
   return (
     <header className={styles.header}>
       <nav className={styles.navbar} aria-label="Main navigation">
-        <Link className={styles.brand} to="/" aria-label="ResumeCraft home">
+        <Link className={styles.brand} to="/" aria-label="ResumeCraft home" onClick={scrollHomeToTop}>
           <img src={transparentLogo} alt="ResumeCraft" />
         </Link>
 
         <div className={styles.desktopNavigation}>
           <div className={styles.navigationLinks}>
             {navigationItems.map((item) => (
-              <a key={item.label} href={item.href}>
+              <a
+                key={item.label}
+                href={item.href}
+                className={activeSection === item.href.split("#")[1] ? styles.activeNavigationLink : ""}
+                aria-current={activeSection === item.href.split("#")[1] ? "location" : undefined}
+              >
                 {item.label}
               </a>
             ))}
@@ -55,7 +92,7 @@ const Navbar: FC = () => {
             </a>
           </div>
 
-          <Link className={styles.primaryAction} to="/start">
+          <Link className={styles.primaryAction} to="/start?mode=create">
             Build my resume
           </Link>
         </div>
@@ -79,7 +116,12 @@ const Navbar: FC = () => {
           aria-hidden={!isMenuOpen}
         >
           {navigationItems.map((item) => (
-            <a key={item.label} href={item.href} tabIndex={isMenuOpen ? 0 : -1}>
+            <a
+              key={item.label}
+              href={item.href}
+              tabIndex={isMenuOpen ? 0 : -1}
+              aria-current={activeSection === item.href.split("#")[1] ? "location" : undefined}
+            >
               {item.label}
             </a>
           ))}
@@ -93,7 +135,7 @@ const Navbar: FC = () => {
           </a>
           <Link
             className={styles.mobilePrimaryAction}
-            to="/start"
+            to="/start?mode=create"
             tabIndex={isMenuOpen ? 0 : -1}
           >
             Build my resume
