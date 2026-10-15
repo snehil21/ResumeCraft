@@ -2,6 +2,8 @@ import React, { FC } from "react";
 import InputControl from "../InputControl/InputControl";
 import styles from "./Editor.module.css";
 import { FormValues } from "../../types";
+import MonthYearControl from "./MonthYearControl";
+import BulletListEditor from "./BulletListEditor";
 
 interface EducationProps {
   values: FormValues;
@@ -13,13 +15,14 @@ const Education: FC<EducationProps> = ({ values, setValues }) => {
     <div className={styles.detail}>
       <div className={styles.row}>
         <InputControl
-          label="Field of Study/Degree"
+          label="Degree"
           value={values.title || ""}
-          placeholder="Enter title eg.B-Tech"
+          placeholder="e.g. Bachelor of Engineering"
           onChange={(event) =>
             setValues((prev) => ({ ...prev, title: event.target.value }))
           }
         />
+        <InputControl label="Field of study" value={values.fieldOfStudy || ""} placeholder="e.g. Computer Science" onChange={(event) => setValues((prev) => ({ ...prev, fieldOfStudy: event.target.value }))} />
       </div>
       <div className={styles.row}>
         <InputControl label="Grade" value={values.grade || ""} placeholder="CGPA, GPA, or distinction" onChange={(event) => setValues((prev) => ({ ...prev, grade: event.target.value }))} />
@@ -33,26 +36,29 @@ const Education: FC<EducationProps> = ({ values, setValues }) => {
           setValues((prev) => ({ ...prev, college: event.target.value }))
         }
       />
+      <InputControl label="Institution URL" type="url" value={values.website || ""} placeholder="https://university.example" onChange={(event) => setValues((prev) => ({ ...prev, website: event.target.value }))} />
       <div className={styles.row}>
-        <InputControl
+        <MonthYearControl
           label="Start Date"
-          type="date"
-          placeholder="Enter start date of this education"
           value={values.startDate || ""}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, startDate: event.target.value }))
+          onChange={(value) =>
+            setValues((prev) => ({ ...prev, startDate: value }))
           }
         />
-        <InputControl
+        <MonthYearControl
           label="End Date"
-          type="date"
-          placeholder="Enter end date of this education"
+          disabled={Boolean(values.currentRole)}
           value={values.endDate || ""}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, endDate: event.target.value }))
+          onChange={(value) =>
+            setValues((prev) => ({ ...prev, endDate: value }))
           }
         />
       </div>
+      <label className={styles.currentRole}>
+        <input type="checkbox" checked={Boolean(values.currentRole)} onChange={(event) => setValues((prev) => ({ ...prev, currentRole: event.target.checked, endDate: event.target.checked ? "" : prev.endDate }))} />
+        I currently study here
+      </label>
+      <BulletListEditor label="Education highlights" points={values.points || []} onChange={(points) => setValues((prev) => ({ ...prev, points }))} />
     </div>
   );
 };

@@ -128,7 +128,7 @@ const Header: FC = () => {
                   <h3>Experience</h3>
                   <div className={styles.resumeEntryHeading}>
                     <strong>Senior Product Designer</strong>
-                    <span>2022 — Present</span>
+                    <span>2022 to Present</span>
                   </div>
                   <p>Northstar Studio</p>
                   <div className={styles.bulletLine}><i /><span /></div>
@@ -140,7 +140,7 @@ const Header: FC = () => {
                   <h3>Education</h3>
                   <div className={styles.resumeEntryHeading}>
                     <strong>B.Des, Interaction Design</strong>
-                    <span>2018 — 2022</span>
+                    <span>2018 to 2022</span>
                   </div>
                   <p>School of Visual Arts</p>
                 </div>

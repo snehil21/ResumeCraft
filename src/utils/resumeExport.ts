@@ -37,7 +37,8 @@ export const createResumePdfTitle = (document: ResumeDocument): string => {
   const name = cleanFilenamePart(basic?.name?.trim() ?? "");
   const documentTitle = cleanFilenamePart(document.title.trim());
   const titleIsGeneric = /^(untitled|sample)(-resume)?$/i.test(documentTitle);
-  const parts = [name, titleIsGeneric ? "" : documentTitle].filter(Boolean);
+  const titleIncludesName = Boolean(name && documentTitle.toLowerCase().includes(name.toLowerCase()));
+  const parts = [titleIncludesName ? "" : name, titleIsGeneric ? "" : documentTitle].filter(Boolean);
   if (!parts.some((part) => /resume/i.test(part))) parts.push("Resume");
   return parts.join("-") || "Resume";
 };
@@ -49,6 +50,19 @@ export const getPrintPageStyle = (pageSize: PageSize): string => {
     @media print {
       html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      [data-resume-print-root] { width: ${page.width} !important; margin: 0 !important; }
+      [data-resume-print-page] {
+        width: ${page.width} !important;
+        height: ${page.height} !important;
+        position: relative !important;
+        overflow: hidden !important;
+        break-after: page !important;
+        page-break-after: always !important;
+      }
+      [data-resume-print-page]:last-child {
+        break-after: auto !important;
+        page-break-after: auto !important;
+      }
       [data-resume-root] { width: ${page.width} !important; margin: 0 !important; }
       [data-resume-sheet] {
         width: ${page.width} !important;

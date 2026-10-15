@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 import { Columns, RefreshCw, Square } from "react-feather";
 
-import { COLORS, DESIGN_LIMITS, FONT_OPTIONS, TEMPLATE_OPTIONS, getTemplateOption } from "../../constants";
+import { COLORS, DESIGN_LIMITS, DESIGN_PRESETS, FONT_OPTIONS, TEMPLATE_OPTIONS, getTemplateOption } from "../../constants";
 import { useResumeStore } from "../../store";
 import { DateFormat, DesignPreset, LayoutMode, PageSize } from "../../types";
 import styles from "./DesignControls.module.css";
@@ -38,17 +38,29 @@ const RangeControl: FC<RangeControlProps> = ({
 const DesignControls: FC = () => {
   const {
     document, setTemplate, updateTheme, updatePageSettings, setLayoutMode,
-    setColumnRatio, applyDesignPreset, resetTemplateDefaults,
+    applyDesignPreset, resetTemplateDefaults,
   } = useResumeStore();
   const { template, theme, page, layout } = document;
 
   const activeTemplate = getTemplateOption(template);
+  const activePreset = (Object.keys(DESIGN_PRESETS) as DesignPreset[]).find((preset) => {
+    const { pageMargin, ...presetTheme } = DESIGN_PRESETS[preset];
+    return page.margin === pageMargin && Object.entries(presetTheme).every(
+      ([key, value]) => theme[key as keyof typeof presetTheme] === value
+    );
+  });
 
   return <div className={styles.controls}>
     <section className={styles.card}>
       <div className={styles.cardHeader}><div><h3>Style preset</h3><p>Start with a safe density, then fine-tune below.</p></div><button type="button" className={styles.reset} onClick={resetTemplateDefaults}><RefreshCw /> Reset template defaults</button></div>
       <div className={styles.segmented} role="group" aria-label="Design density preset">
-        {(["compact", "balanced", "spacious"] as DesignPreset[]).map((preset) => <button type="button" key={preset} onClick={() => applyDesignPreset(preset)}>{preset}</button>)}
+        {(["compact", "balanced", "spacious"] as DesignPreset[]).map((preset) => <button
+          type="button"
+          key={preset}
+          className={activePreset === preset ? styles.selectedSegment : ""}
+          aria-pressed={activePreset === preset}
+          onClick={() => applyDesignPreset(preset)}
+        >{preset}</button>)}
       </div>
     </section>
 
@@ -61,7 +73,9 @@ const DesignControls: FC = () => {
         <div className={styles.segmented} role="group" aria-label="Column layout">
           {(["one", "two"] as LayoutMode[]).map((mode) => <button type="button" key={mode} className={layout.mode === mode ? styles.selectedSegment : ""} onClick={() => setLayoutMode(mode)} aria-pressed={layout.mode === mode}><Square /> {mode === "one" ? "One column" : "Two columns"}</button>)}
         </div>
-        <RangeControl label="Left column width" value={layout.columnRatio} {...DESIGN_LIMITS.columnRatio} suffix="%" disabled={layout.mode !== "two"} onChange={setColumnRatio} />
+        {layout.mode === "two"
+          ? <p className={styles.inlineNote}>Content fills the left column first, then the right column, using equal widths on every page.</p>
+          : null}
       </> : <p className={styles.inlineNote}>{activeTemplate.title} uses a single-column layout.</p>}
     </section>
 
@@ -83,6 +97,7 @@ const DesignControls: FC = () => {
         <label><span>Accent</span><input type="color" value={theme.accentColor} onChange={(event) => updateTheme({ accentColor: event.target.value })} /><output>{theme.accentColor.toUpperCase()}</output></label>
         <label><span>Body text</span><input type="color" value={theme.textColor} onChange={(event) => updateTheme({ textColor: event.target.value })} /><output>{theme.textColor.toUpperCase()}</output></label>
       </div>
+      <p className={styles.safetyNote}>Body text is kept at a readable 4.5:1 contrast against the white page.</p>
       <div className={styles.swatches} role="group" aria-label="Suggested accent colors">{COLORS.map((color) => <button key={color} type="button" style={{ backgroundColor: color }} className={theme.accentColor === color ? styles.activeSwatch : ""} onClick={() => updateTheme({ accentColor: color })} aria-label={`Use accent color ${color}`} aria-pressed={theme.accentColor === color} />)}</div>
     </section>
 

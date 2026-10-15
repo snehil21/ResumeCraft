@@ -4,12 +4,12 @@
   gap: 5px;
 }
 
-label {
+.container label {
   font-weight: 500;
   font-size: 1rem;
 }
 
-input {
+.container input {
   border: 1px solid #cccccc;
   outline: none;
   padding: 10px 12px;
@@ -17,11 +17,11 @@ input {
   border-radius: 5px;
 }
 
-input:hover {
+.container input:hover {
   border: 1px solid #adadad;
 }
 
-input:focus {
+.container input:focus {
   border: 1px solid #b75024;
   box-shadow: 0 0 0 3px rgba(183, 80, 36, 0.12);
 }

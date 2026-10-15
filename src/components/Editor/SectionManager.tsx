@@ -1,11 +1,16 @@
-import React, { FC, useState } from "react";
-import { ArrowDown, ArrowUp, Copy, Eye, EyeOff, Plus, Trash2 } from "react-feather";
+import React, { FC, useEffect, useState } from "react";
+import { ArrowDown, ArrowUp, Copy, Eye, EyeOff, Plus, Trash2, X } from "react-feather";
 
 import { SECTIONS } from "../../constants";
 import { useResumeStore } from "../../store";
 import styles from "./SectionManager.module.css";
 
-const SectionManager: FC = () => {
+interface SectionManagerProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const SectionManager: FC<SectionManagerProps> = ({ isOpen, onClose }) => {
   const [customTitle, setCustomTitle] = useState("");
   const {
     document,
@@ -30,11 +35,29 @@ const SectionManager: FC = () => {
     setCustomTitle("");
   };
 
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.document.addEventListener("keydown", handleEscape);
+    return () => window.document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
   return (
-    <details className={styles.manager}>
-      <summary>Manage sections <span>{orderedSections.length} sections</span></summary>
-      <div className={styles.body}>
-        <p className={styles.help}>Rename, show, reorder, duplicate, or remove sections. Move buttons are keyboard accessible.</p>
+    <div className={styles.backdrop} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <section className={styles.manager} role="dialog" aria-modal="true" aria-labelledby="section-manager-title">
+        <header className={styles.header}>
+          <div>
+            <p>Resume structure</p>
+            <h2 id="section-manager-title">Manage sections</h2>
+          </div>
+          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close section manager"><X /></button>
+        </header>
+        <div className={styles.body}>
+        <p className={styles.help}>Rename, show, reorder, duplicate, or remove sections.</p>
         <div className={styles.rows}>
           {orderedSections.map(([key, section], index) => (
             <div key={key} className={styles.row}>
@@ -73,8 +96,9 @@ const SectionManager: FC = () => {
             </div>
           </div>
         ) : null}
-      </div>
-    </details>
+        </div>
+      </section>
+    </div>
   );
 };
 

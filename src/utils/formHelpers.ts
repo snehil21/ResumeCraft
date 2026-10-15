@@ -77,7 +77,9 @@ export const buildDetailForSection = (
         startDate: formValues.startDate,
         endDate: formValues.endDate,
         companyName: formValues.companyName,
+        employmentType: formValues.employmentType,
         location: formValues.location,
+        website: formValues.website,
         points: formValues.points,
         currentRole: formValues.currentRole,
       };
@@ -86,6 +88,7 @@ export const buildDetailForSection = (
       return {
         link: formValues.link,
         title: formValues.title,
+        subtitle: formValues.subtitle,
         overview: formValues.overview,
         github: formValues.github,
         points: formValues.points,
@@ -96,11 +99,15 @@ export const buildDetailForSection = (
     case SECTIONS.education:
       return {
         title: formValues.title,
+        fieldOfStudy: formValues.fieldOfStudy,
         college: formValues.college,
         startDate: formValues.startDate,
         endDate: formValues.endDate,
         grade: formValues.grade,
         location: formValues.location,
+        website: formValues.website,
+        points: formValues.points,
+        currentRole: formValues.currentRole,
       };
 
     case SECTIONS.achievement:
@@ -113,6 +120,6 @@ export const buildDetailForSection = (
       return formValues.other;
 
     default:
-      return {};
+      return { ...formValues };
   }
 };

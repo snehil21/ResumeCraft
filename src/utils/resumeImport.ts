@@ -2,6 +2,7 @@ import { SECTION_LABELS, SECTIONS } from "../constants/sections.ts";
 import type {
   BasicDetail,
   EducationDetail,
+  GenericDetail,
   ProjectDetail,
   ResumeDocument,
   ResumeInformation,
@@ -331,21 +332,47 @@ const joinSectionContent = (
   type: ResumeSectionType
 ): string => getIncludedSections(draft, type).map((section) => section.content.trim()).filter(Boolean).join("\n\n");
 
+const createImportedEntryDetails = (
+  draft: ImportReviewDraft,
+  type: "skills" | "certifications"
+): GenericDetail[] => getIncludedSections(draft, type).flatMap((section, sectionIndex) => {
+  const links = new Set(section.links.map((link) => link.toLowerCase()));
+  const lines = withoutDateLines(cleanLines(section.content), section.dateRanges).filter((line) => {
+    const normalized = line.replace(/^(?:credential|certificate|verify|website)\s*:?\s*/i, "").trim().toLowerCase();
+    return !links.has(normalized);
+  });
+  return lines.map((line, lineIndex) => {
+    const [category, values] = splitPrimaryLine(line.replace(/^([^:]+):\s*/, "$1 | "));
+    const range = lineIndex === 0 ? section.dateRanges[0] : undefined;
+    return {
+      id: `import-${type}-${sectionIndex}-${lineIndex}`,
+      title: category,
+      ...(type === "skills" && values ? { subtitle: values } : {}),
+      ...(type === "certifications" && lineIndex === 0 && section.links[0]
+        ? { website: section.links[0] }
+        : {}),
+      startDate: range?.start,
+      endDate: range?.isCurrent ? undefined : range?.end,
+      currentRole: Boolean(range?.isCurrent),
+    };
+  });
+});
+
 export const buildImportedResumeInformation = (
   draft: ImportReviewDraft
 ): ResumeInformation => {
   const workDetails = createWorkDetails(draft);
   const educationDetails = createEducationDetails(draft);
   const projectDetails = createProjectDetails(draft);
-  const achievements = getIncludedSections(draft, "achievements").flatMap((section) =>
-    cleanLines(section.content)
+  const achievements = getIncludedSections(draft, "achievements").flatMap((section, sectionIndex) =>
+    cleanLines(section.content).map((title, index) => ({
+      id: `import-achievement-${sectionIndex}-${index}`,
+      title,
+    }))
   );
+  const skills = createImportedEntryDetails(draft, "skills");
+  const certifications = createImportedEntryDetails(draft, "certifications");
   const additionalBlocks = [
-    ...(["skills", "certifications"] as ResumeSectionType[]).flatMap((type) =>
-      getIncludedSections(draft, type).map(
-        (section) => `${section.heading}\n${section.content}`.trim()
-      )
-    ),
     ...draft.unrecognized
       .filter((block) => block.include)
       .map((block) => `${block.heading}\n${block.content}`.trim()),
@@ -392,7 +419,8 @@ export const buildImportedResumeInformation = (
       id: SECTIONS.achievement,
       sectionTitle: SECTION_LABELS.achievement,
       visible: achievements.length > 0,
-      points: achievements,
+      kind: "entries",
+      details: achievements.length ? achievements : [{ id: "import-achievement-empty" }],
     },
     [SECTIONS.summary]: {
       id: SECTIONS.summary,
@@ -405,6 +433,20 @@ export const buildImportedResumeInformation = (
       sectionTitle: SECTION_LABELS.other,
       visible: additionalBlocks.length > 0,
       detail: additionalBlocks.join("\n\n"),
+    },
+    [SECTIONS.skills]: {
+      id: SECTIONS.skills,
+      sectionTitle: SECTION_LABELS.skills,
+      visible: skills.length > 0,
+      kind: "entries",
+      details: skills.length ? skills : [{ id: "import-skills-empty" }],
+    },
+    [SECTIONS.certifications]: {
+      id: SECTIONS.certifications,
+      sectionTitle: SECTION_LABELS.certifications,
+      visible: certifications.length > 0,
+      kind: "entries",
+      details: certifications.length ? certifications : [{ id: "import-certifications-empty" }],
     },
   };
 };

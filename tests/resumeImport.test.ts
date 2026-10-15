@@ -56,8 +56,33 @@ test("converts only included reviewed sections into resume information", () => {
   assert.equal(basicInfo.name, "Alex Reviewed");
   assert.equal(information.workExp.visible, true);
   assert.equal(information.education.visible, false);
-  assert.match(String(information.other.detail), /Skills/);
+  assert.equal(information.skills.visible, true);
+  assert.equal((information.skills.details?.[0] as { title?: string }).title, "Java, AWS, Kafka");
   assert.match(String(information.other.detail), /VOLUNTEERING/);
+});
+
+test("imports certifications as structured entries with dates and links", () => {
+  const review = createImportReviewDraft(parseResumeText(`Alex Example
+Certifications
+AWS Certified Solutions Architect
+Jan 2024 - Jan 2027`));
+  const certificationSection = review.sections.find((section) => section.type === "certifications");
+  assert.ok(certificationSection);
+  certificationSection.links = ["https://verify.example.test/aws"];
+  const information = buildImportedResumeInformation(review);
+  const certification = information.certifications.details?.[0] as {
+    title?: string;
+    website?: string;
+    startDate?: string;
+    endDate?: string;
+  };
+
+  assert.equal(information.certifications.visible, true);
+  assert.equal(information.certifications.details?.length, 1);
+  assert.equal(certification.title, "AWS Certified Solutions Architect");
+  assert.equal(certification.website, "https://verify.example.test/aws");
+  assert.equal(certification.startDate, "Jan 2024");
+  assert.equal(certification.endDate, "Jan 2027");
 });
 
 test("keeps edited date fields when creating experience entries", () => {

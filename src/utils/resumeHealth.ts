@@ -1,4 +1,5 @@
 import type { BasicDetail, ResumeDocument, Section } from "../types/index.ts";
+import { isReadableBodyColor } from "./colorContrast.ts";
 
 export type HealthSeverity = "critical" | "recommended" | "optional";
 export type HealthTarget = {
@@ -198,6 +199,14 @@ export const analyzeResumeHealth = (
 
   if (document.theme.baseFontSize <= 11) {
     addFinding(findings, { severity: "optional", title: "Check small body text", detail: "The body font is at the minimum supported size. Confirm it is comfortable to read.", target: { mode: "design" } }, "small-text");
+  }
+  if (!isReadableBodyColor(document.theme.textColor)) {
+    addFinding(findings, {
+      severity: "critical",
+      title: "Increase body text contrast",
+      detail: "Body text needs at least 4.5:1 contrast against the white page before export.",
+      target: { mode: "design" },
+    }, "text-contrast");
   }
   const densitySignals = [
     document.theme.lineHeight <= 1.2,

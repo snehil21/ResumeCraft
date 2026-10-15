@@ -24,6 +24,7 @@ import {
   isResumeDocument,
   RESUME_STORAGE_KEY,
 } from "../utils/resumeDocument";
+import { ensureReadableBodyColor } from "../utils/colorContrast";
 
 const DEFAULT_COLUMNS: ResumeColumns = [
   [SECTIONS.summary, SECTIONS.project, SECTIONS.education, SECTIONS.skills, SECTIONS.languages],
@@ -57,22 +58,22 @@ const withVisibility = (section: Omit<Section, "visible">): Section => ({
   visible: true,
 });
 
-const createListSection = (id: string, sectionTitle: string): Section => ({
+const createEntrySection = (id: string, sectionTitle: string): Section => ({
   id,
   sectionTitle,
   visible: false,
-  kind: "list",
-  points: [],
+  kind: "entries",
+  details: [{ id: createId(id) }],
 });
 
 const createOptionalSections = (): ResumeInformation => ({
-  [SECTIONS.skills]: createListSection(SECTIONS.skills, SECTION_LABELS.skills),
-  [SECTIONS.certifications]: createListSection(SECTIONS.certifications, SECTION_LABELS.certifications),
-  [SECTIONS.languages]: createListSection(SECTIONS.languages, SECTION_LABELS.languages),
-  [SECTIONS.awards]: createListSection(SECTIONS.awards, SECTION_LABELS.awards),
-  [SECTIONS.volunteering]: createListSection(SECTIONS.volunteering, SECTION_LABELS.volunteering),
-  [SECTIONS.publications]: createListSection(SECTIONS.publications, SECTION_LABELS.publications),
-  [SECTIONS.courses]: createListSection(SECTIONS.courses, SECTION_LABELS.courses),
+  [SECTIONS.skills]: createEntrySection(SECTIONS.skills, SECTION_LABELS.skills),
+  [SECTIONS.certifications]: createEntrySection(SECTIONS.certifications, SECTION_LABELS.certifications),
+  [SECTIONS.languages]: createEntrySection(SECTIONS.languages, SECTION_LABELS.languages),
+  [SECTIONS.awards]: createEntrySection(SECTIONS.awards, SECTION_LABELS.awards),
+  [SECTIONS.volunteering]: createEntrySection(SECTIONS.volunteering, SECTION_LABELS.volunteering),
+  [SECTIONS.publications]: createEntrySection(SECTIONS.publications, SECTION_LABELS.publications),
+  [SECTIONS.courses]: createEntrySection(SECTIONS.courses, SECTION_LABELS.courses),
 });
 
 const clamp = (value: number, min: number, max: number): number =>
@@ -83,6 +84,7 @@ const clampTheme = (current: ResumeTheme, update: Partial<ResumeTheme>): ResumeT
   return {
     ...current,
     ...update,
+    textColor: ensureReadableBodyColor(update.textColor ?? current.textColor),
     dateFormat: dateFormat === "MM/YYYY" || dateFormat === "YYYY" ? dateFormat : "MMM YYYY",
     baseFontSize: clamp(update.baseFontSize ?? current.baseFontSize, DESIGN_LIMITS.baseFontSize.min, DESIGN_LIMITS.baseFontSize.max),
     nameFontSize: clamp(update.nameFontSize ?? current.nameFontSize, DESIGN_LIMITS.nameFontSize.min, DESIGN_LIMITS.nameFontSize.max),
@@ -218,10 +220,11 @@ const createSampleResumeInformation = (): ResumeInformation => ({
   [SECTIONS.achievement]: withVisibility({
     id: SECTIONS.achievement,
     sectionTitle: SECTION_LABELS.achievement,
-    points: [
-      "AWS Certified Solutions Architect",
-      "Published 5+ technical articles on Medium",
-      "Open source contributor",
+    kind: "entries",
+    details: [
+      { id: "sample-achievement-1", title: "AWS Certified Solutions Architect" },
+      { id: "sample-achievement-2", title: "Published 5+ technical articles on Medium" },
+      { id: "sample-achievement-3", title: "Open source contributor" },
     ],
   }),
   [SECTIONS.summary]: withVisibility({
@@ -263,7 +266,8 @@ const createBlankResumeInformation = (): ResumeInformation => ({
   [SECTIONS.achievement]: withVisibility({
     id: SECTIONS.achievement,
     sectionTitle: SECTION_LABELS.achievement,
-    points: [],
+    kind: "entries",
+    details: [{ id: createId("achievement") }],
   }),
   [SECTIONS.summary]: withVisibility({
     id: SECTIONS.summary,
@@ -284,16 +288,27 @@ const SECTION_KINDS: Record<string, Section["kind"]> = {
   [SECTIONS.project]: "project",
   [SECTIONS.education]: "education",
   [SECTIONS.summary]: "summary",
-  [SECTIONS.achievement]: "list",
+  [SECTIONS.achievement]: "entries",
   [SECTIONS.other]: "text",
-  [SECTIONS.skills]: "list",
-  [SECTIONS.certifications]: "list",
-  [SECTIONS.languages]: "list",
-  [SECTIONS.awards]: "list",
-  [SECTIONS.volunteering]: "list",
-  [SECTIONS.publications]: "list",
-  [SECTIONS.courses]: "list",
+  [SECTIONS.skills]: "entries",
+  [SECTIONS.certifications]: "entries",
+  [SECTIONS.languages]: "entries",
+  [SECTIONS.awards]: "entries",
+  [SECTIONS.volunteering]: "entries",
+  [SECTIONS.publications]: "entries",
+  [SECTIONS.courses]: "entries",
 };
+
+const STRUCTURED_ENTRY_KEYS = new Set<string>([
+  SECTIONS.achievement,
+  SECTIONS.skills,
+  SECTIONS.certifications,
+  SECTIONS.languages,
+  SECTIONS.awards,
+  SECTIONS.volunteering,
+  SECTIONS.publications,
+  SECTIONS.courses,
+]);
 
 const normalizeResumeDocument = (document: ResumeDocument): ResumeDocument => {
   const optionalSections = createOptionalSections();
@@ -304,6 +319,20 @@ const normalizeResumeDocument = (document: ResumeDocument): ResumeDocument => {
   });
 
   Object.entries(resumeInformation).forEach(([key, section]) => {
+    if (STRUCTURED_ENTRY_KEYS.has(key)) {
+      const migratedDetails = section.details?.length
+        ? section.details
+        : section.points?.length
+          ? section.points.map((point, index) => ({ id: `${key}-migrated-${index}`, title: point }))
+          : [{ id: createId(key) }];
+      resumeInformation[key] = {
+        ...section,
+        kind: "entries",
+        details: migratedDetails,
+        points: undefined,
+      };
+      return;
+    }
     resumeInformation[key] = { ...section, kind: section.kind ?? SECTION_KINDS[key] ?? "text" };
   });
 
@@ -523,8 +552,7 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
         template,
         layout: {
           ...state.document.layout,
-          mode: TEMPLATE_DEFAULTS[template].layoutMode,
-          columnRatio: TEMPLATE_DEFAULTS[template].columnRatio,
+          mode: template === "vertical" ? "one" : state.document.layout.mode,
         },
       })
     )),

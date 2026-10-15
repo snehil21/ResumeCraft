@@ -18,7 +18,9 @@ export interface WorkExpDetail {
   startDate?: string;
   endDate?: string;
   companyName?: string;
+  employmentType?: string;
   location?: string;
+  website?: string;
   points?: string[];
   currentRole?: boolean;
 }
@@ -28,6 +30,7 @@ export interface ProjectDetail {
   id: string;
   link?: string;
   title?: string;
+  subtitle?: string;
   overview?: string;
   github?: string;
   points?: string[];
@@ -39,21 +42,33 @@ export interface ProjectDetail {
 export interface EducationDetail {
   id: string;
   title?: string;
+  fieldOfStudy?: string;
   college?: string;
   startDate?: string;
   endDate?: string;
   grade?: string;
   location?: string;
+  website?: string;
+  points?: string[];
+  currentRole?: boolean;
 }
 
 export interface GenericDetail {
   id: string;
   title?: string;
   subtitle?: string;
+  issuer?: string;
+  credentialId?: string;
+  proficiency?: string;
+  organization?: string;
+  publisher?: string;
+  provider?: string;
   location?: string;
   website?: string;
   startDate?: string;
   endDate?: string;
+  currentRole?: boolean;
+  overview?: string;
   points?: string[];
 }
 
@@ -84,6 +99,14 @@ export type FormValues = BasicDetail &
     grade?: string;
     currentRole?: boolean;
     subtitle?: string;
+    issuer?: string;
+    credentialId?: string;
+    proficiency?: string;
+    organization?: string;
+    publisher?: string;
+    provider?: string;
+    employmentType?: string;
+    fieldOfStudy?: string;
   };
 
 // Resume Section with discriminated unions for better type safety

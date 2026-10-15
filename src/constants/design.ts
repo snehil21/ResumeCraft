@@ -84,12 +84,12 @@ export const TEMPLATE_DEFAULTS: Record<TemplateId, {
     theme: {
       ...DEFAULT_RESUME_THEME,
       accentColor: "#2f6b52",
-      baseFontSize: 11,
+      baseFontSize: 12,
       nameFontSize: 30,
       headingFontSize: 15,
       lineHeight: 1.2,
       sectionGap: 8,
-      itemGap: 5,
+      itemGap: 6,
     },
     pageMargin: 18,
     layoutMode: "two",
@@ -98,12 +98,12 @@ export const TEMPLATE_DEFAULTS: Record<TemplateId, {
 };
 
 export const DESIGN_LIMITS = {
-  baseFontSize: { min: 11, max: 18, step: 1 },
-  nameFontSize: { min: 26, max: 52, step: 1 },
-  headingFontSize: { min: 15, max: 28, step: 1 },
-  lineHeight: { min: 1.15, max: 1.8, step: 0.05 },
-  pageMargin: { min: 12, max: 48, step: 1 },
-  sectionGap: { min: 6, max: 32, step: 1 },
-  itemGap: { min: 4, max: 24, step: 1 },
+  baseFontSize: { min: 12, max: 16, step: 1 },
+  nameFontSize: { min: 28, max: 46, step: 1 },
+  headingFontSize: { min: 15, max: 24, step: 1 },
+  lineHeight: { min: 1.2, max: 1.6, step: 0.05 },
+  pageMargin: { min: 16, max: 36, step: 1 },
+  sectionGap: { min: 8, max: 24, step: 1 },
+  itemGap: { min: 6, max: 18, step: 1 },
   columnRatio: { min: 35, max: 65, step: 1 },
 } as const;

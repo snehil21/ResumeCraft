@@ -1,76 +1,195 @@
 .container {
-  flex: 1;
   max-width: 800px;
-  min-height: 550px;
-  max-height: calc(100vh - 200px);
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
-  padding-top: 5px;
-  overflow-y: auto;
   margin: 0 auto;
-  overscroll-behavior: contain;
+  border: 1px solid #ddd3c9;
+  border-radius: 13px;
+  background: rgba(255, 253, 249, 0.94);
+  box-shadow: 0 10px 26px rgba(58, 42, 31, 0.07);
 }
 
-.header {
-  display: flex;
-  gap: 10px;
-  justify-content: space-around;
-  /* height: 25px; */
-  overflow-x: auto;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  flex: 0 0 auto;
-  background: #fff;
+.editorToolbar {
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  border-bottom: 1px solid #e5dcd4;
 }
 
-.header::-webkit-scrollbar {
-  height: 7px;
+.sectionSelect {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+  color: #554d47;
+  font-size: 0.7rem;
+  font-weight: 800;
 }
 
-.header::-webkit-scrollbar-thumb {
-  border-radius: 20px;
-  background-color: #c7c7c7;
-}
-
-.header .section {
-  padding: 10px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: transparent;
+.sectionSelect > label {
   color: inherit;
   font: inherit;
+}
+
+.sectionSelect small {
+  min-height: 1.35em;
+  color: #82776f;
+  font-size: 0.65rem;
   font-weight: 500;
-  font-size: 1rem;
-  white-space: nowrap;
+  line-height: 1.35;
+}
+
+.sectionSelect select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 38px 0 12px;
+  border: 1px solid #cec4bb;
+  border-radius: 8px;
+  background: #fff;
+  color: #2e2925;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
   cursor: pointer;
 }
 
-.header .active {
-  border-bottom: 2px solid #b75024;
-  color: #a64923;
+.manageButton,
+.visibilityButton,
+.renameButton,
+.addEntry,
+.entryMenuButton,
+.entryMenuPopover button {
+  font: inherit;
+  cursor: pointer;
 }
 
-.header .section:focus-visible {
-  outline: 2px solid #b75024;
-  outline-offset: -2px;
+.manageButton {
+  min-height: 42px;
+  padding: 0 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #d5cbc2;
+  border-radius: 8px;
+  background: #fff;
+  color: #514941;
+  font-size: 0.72rem;
+  font-weight: 780;
+}
+
+.toolbarActions {
+  display: flex;
+  gap: 7px;
+}
+
+.visibilityButton {
+  min-height: 42px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #d5cbc2;
+  border-radius: 8px;
+  background: #fff;
+  color: #5d544d;
+  font-size: 0.7rem;
+  font-weight: 760;
+}
+
+.visibilityButton[aria-pressed="true"] {
+  border-color: #d6a58c;
+  background: #fff4ed;
+  color: #974321;
+}
+
+.manageButton svg,
+.visibilityButton svg,
+.renameButton svg,
+.addEntry svg {
+  width: 15px;
+  height: 15px;
 }
 
 .body {
-  padding: 30px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding-top: 0;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sectionHeading p {
+  margin: 0 0 4px;
+  color: #a64923;
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.sectionHeading h2 {
+  margin: 0;
+  color: #2c2723;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.45rem;
+  line-height: 1.15;
+}
+
+.entryCount {
+  display: inline-block;
+  margin-top: 6px;
+  color: #786e66;
+  font-size: 0.67rem;
+  font-weight: 650;
+}
+
+.renameButton {
+  min-height: 34px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  border: 1px solid #d9cfc6;
+  border-radius: 7px;
+  background: #fff;
+  color: #675e57;
+  font-size: 0.68rem;
+  font-weight: 750;
+}
+
+.renameControl {
+  padding: 13px;
+  border: 1px solid #ded4ca;
+  border-radius: 9px;
+  background: #f8f3ed;
 }
 
 .detail {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 16px;
+}
+
+.detail .row {
+  display: flex;
+  gap: 16px;
+}
+
+.detail .column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail .row > div {
+  flex: 1;
+  min-width: 0;
 }
 
 .summaryField {
@@ -84,11 +203,11 @@
 
 .summaryField textarea {
   width: 100%;
-  min-height: 190px;
+  min-height: 220px;
   resize: vertical;
   padding: 12px;
   border: 1px solid #cfc7bf;
-  border-radius: 6px;
+  border-radius: 8px;
   color: inherit;
   background: #fff;
   font: inherit;
@@ -96,97 +215,212 @@
   line-height: 1.5;
 }
 
-.summaryField textarea:focus-visible {
-  outline: 2px solid #b75024;
-  outline-offset: 1px;
+.summaryField textarea:focus-visible,
+.sectionSelect select:focus-visible,
+.manageButton:focus-visible,
+.renameButton:focus-visible,
+.entrySelect:focus-visible,
+.entryMenuButton:focus-visible,
+.entryMenuPopover button:focus-visible,
+.addEntry:focus-visible {
+  outline: 3px solid rgba(183, 80, 36, 0.25);
+  outline-offset: 2px;
 }
 
-.detail .row {
-  display: flex;
-  gap: 20px;
-}
-.detail .column {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.detail .row > div {
-  flex: 1;
+.entries {
+  display: grid;
+  gap: 8px;
 }
 
-.chips {
-  display: flex;
-  flex-wrap: wrap;
+.entryRow {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 20px;
-}
-
-.chips .new {
-  color: #a64923;
-  font-weight: bold;
-  letter-spacing: 1px;
-  cursor: pointer;
-}
-
-.chip {
-  display: flex;
-  gap: 5px;
-  align-items: center;
-  padding: 4px 8px;
-  background-color: #808080;
+  border: 1px solid #d9cfc6;
   border-radius: 10px;
-  cursor: default;
+  background: #fff;
 }
 
-.chip p {
-  font-weight: 500;
-  line-height: 1.25rem;
-  color: #fff;
+.activeEntry {
+  border-color: #b85a30;
+  background: #fff8f2;
+  box-shadow: 0 0 0 2px rgba(183, 80, 36, 0.09);
 }
-.chip svg {
-  color: #fff;
-  height: 18px;
-  width: 18px;
+
+.entrySelect {
+  min-width: 0;
+  padding: 12px 13px;
+  display: grid;
+  gap: 3px;
+  border: 0;
+  border-radius: 9px 0 0 9px;
+  background: transparent;
+  color: #312b27;
+  text-align: left;
   cursor: pointer;
 }
 
-.entryActions { display: flex; gap: 2px; }
-.entryActions button { width: 24px!important; height: 24px; padding: 0!important; display: grid!important; place-items: center; border: 0!important; background: rgba(255,255,255,.14)!important; }
-.entryActions button:disabled { opacity: .35; cursor: not-allowed; }
-.entryActions svg { width: 12px; height: 12px; }
-
-.chips .active {
-  background-color: #b75024;
+.entrySelect span {
+  overflow: hidden;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.body button {
-  width: fit-content;
-  padding: 8px 16px;
-  border-radius: 5px;
-  background-color: #b75024;
-  color: #fff;
-  outline: none;
-  border: none;
-  font-weight: 500;
-  font-size: 1rem;
-  letter-spacing: 1px;
+.entrySelect small {
+  overflow: hidden;
+  color: #7b7169;
+  font-size: 0.66rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entryMenu {
+  position: relative;
+  padding-right: 8px;
+}
+
+.entryMenuButton {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid #d9cfc6;
+  border-radius: 7px;
+  background: #fff;
+  color: #655c55;
+}
+
+.entryMenuButton svg {
+  width: 17px;
+  height: 17px;
+}
+
+.entryMenuPopover {
+  width: 150px;
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 8px;
+  z-index: 20;
+  padding: 5px;
+  display: grid;
+  gap: 2px;
+  border: 1px solid #d9cfc6;
+  border-radius: 9px;
+  background: #fffdf9;
+  box-shadow: 0 14px 30px rgba(49, 35, 25, 0.18);
+}
+
+.entryMenuPopover button {
+  min-height: 34px;
+  padding: 0 9px;
   display: flex;
-  gap: 5px;
   align-items: center;
-  cursor: pointer;
-  transition: 200ms;
+  gap: 7px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #514943;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-align: left;
 }
 
-.body button:active {
-  transform: translateY(2px);
+.entryMenuPopover button:hover:not(:disabled) {
+  background: #f3e9df;
+  color: #943f1d;
 }
 
-.autosaveHint {
-  margin: 2px 0 0;
-  color: #746b63;
+.entryMenuPopover button:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.entryMenuPopover button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.entryMenuPopover .deleteEntry {
+  color: #a3352b;
+}
+
+.addEntry {
+  width: 100%;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px dashed #c98665;
+  border-radius: 9px;
+  background: #fff8f2;
+  color: #99401e;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.currentRole {
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #544c45;
   font-size: 0.76rem;
-  line-height: 1.45;
 }
 
-.currentRole { width: fit-content; display: flex; align-items: center; gap: 8px; color: #544c45; font-size: .76rem; }
-.currentRole input { width: auto; }
+.currentRole input {
+  width: auto;
+}
+
+.selectControl {
+  display: grid;
+  gap: 7px;
+  color: #544c45;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.selectControl select {
+  width: 100%;
+  min-height: 41px;
+  padding: 0 38px 0 11px;
+  border: 1px solid #cfc7bf;
+  border-radius: 8px;
+  background: #fff;
+  color: #38322e;
+  font: inherit;
+  font-weight: 450;
+}
+
+.selectControl select:focus-visible,
+.visibilityButton:focus-visible {
+  outline: 3px solid rgba(183, 80, 36, 0.25);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .editorToolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .manageButton {
+    justify-content: center;
+  }
+
+  .toolbarActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .body {
+    padding: 18px;
+  }
+
+  .detail .row {
+    flex-direction: column;
+  }
+}

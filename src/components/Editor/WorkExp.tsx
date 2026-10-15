@@ -3,6 +3,7 @@ import InputControl from "../InputControl/InputControl";
 import styles from "./Editor.module.css";
 import { FormValues } from "../../types";
 import BulletListEditor from "./BulletListEditor";
+import MonthYearControl from "./MonthYearControl";
 
 interface WorkExpProps {
   values: FormValues;
@@ -31,6 +32,18 @@ const WorkExp: FC<WorkExpProps> = ({ values, setValues }) => {
         />
       </div>
       <div className={styles.row}>
+        <label className={styles.selectControl}>
+          <span>Employment type</span>
+          <select value={values.employmentType || ""} onChange={(event) => setValues((prev) => ({ ...prev, employmentType: event.target.value }))}>
+            <option value="">Select type</option>
+            <option>Full-time</option>
+            <option>Part-time</option>
+            <option>Contract</option>
+            <option>Internship</option>
+            <option>Freelance</option>
+            <option>Apprenticeship</option>
+          </select>
+        </label>
         <InputControl
           label="Location"
           placeholder="Enter location eg. Remote"
@@ -40,22 +53,21 @@ const WorkExp: FC<WorkExpProps> = ({ values, setValues }) => {
           }
         />
       </div>
+      <InputControl label="Company URL" type="url" value={values.website || ""} placeholder="https://company.example" onChange={(event) => setValues((prev) => ({ ...prev, website: event.target.value }))} />
       <div className={styles.row}>
-        <InputControl
+        <MonthYearControl
           label="Start Date"
-          type="date"
           value={values.startDate || ""}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, startDate: event.target.value }))
+          onChange={(value) =>
+            setValues((prev) => ({ ...prev, startDate: value }))
           }
         />
-        <InputControl
+        <MonthYearControl
           label="End Date"
-          type="date"
           disabled={Boolean(values.currentRole)}
           value={values.endDate || ""}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, endDate: event.target.value }))
+          onChange={(value) =>
+            setValues((prev) => ({ ...prev, endDate: value }))
           }
         />
       </div>
