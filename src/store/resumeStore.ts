@@ -24,6 +24,7 @@ import {
   isResumeDocument,
   RESUME_STORAGE_KEY,
 } from "../utils/resumeDocument";
+import { ensureReadableBodyColor } from "../utils/colorContrast";
 
 const DEFAULT_COLUMNS: ResumeColumns = [
   [SECTIONS.summary, SECTIONS.project, SECTIONS.education, SECTIONS.skills, SECTIONS.languages],
@@ -83,6 +84,7 @@ const clampTheme = (current: ResumeTheme, update: Partial<ResumeTheme>): ResumeT
   return {
     ...current,
     ...update,
+    textColor: ensureReadableBodyColor(update.textColor ?? current.textColor),
     dateFormat: dateFormat === "MM/YYYY" || dateFormat === "YYYY" ? dateFormat : "MMM YYYY",
     baseFontSize: clamp(update.baseFontSize ?? current.baseFontSize, DESIGN_LIMITS.baseFontSize.min, DESIGN_LIMITS.baseFontSize.max),
     nameFontSize: clamp(update.nameFontSize ?? current.nameFontSize, DESIGN_LIMITS.nameFontSize.min, DESIGN_LIMITS.nameFontSize.max),
@@ -550,8 +552,7 @@ export const useResumeStore = create<ResumeStore>()(persist((set) => ({
         template,
         layout: {
           ...state.document.layout,
-          mode: TEMPLATE_DEFAULTS[template].layoutMode,
-          columnRatio: TEMPLATE_DEFAULTS[template].columnRatio,
+          mode: template === "vertical" ? "one" : state.document.layout.mode,
         },
       })
     )),

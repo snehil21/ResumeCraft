@@ -31,11 +31,14 @@ const documentFixture = (name: string, title: string): ResumeDocument => ({
 test("creates a meaningful, filesystem-safe PDF title", () => {
   assert.equal(createResumePdfTitle(documentFixture("Renée O'Connor", "Backend résumé")), "Renee-O-Connor-Backend-resume");
   assert.equal(createResumePdfTitle(documentFixture("Alex Morgan", "Untitled resume")), "Alex-Morgan-Resume");
+  assert.equal(createResumePdfTitle(documentFixture("Snehil Kumar", "Snehil Kumar resume")), "Snehil-Kumar-resume");
 });
 
 test("uses exact print dimensions for A4 and Letter", () => {
   assert.match(getPrintPageStyle("A4"), /size: A4/);
   assert.match(getPrintPageStyle("A4"), /width: 210mm/);
+  assert.match(getPrintPageStyle("A4"), /data-resume-print-page/);
+  assert.match(getPrintPageStyle("A4"), /break-after: page/);
   assert.match(getPrintPageStyle("LETTER"), /size: letter/);
   assert.match(getPrintPageStyle("LETTER"), /width: 8\.5in/);
   assert.ok(PRINT_PAGE_DIMENSIONS.A4.heightPx > PRINT_PAGE_DIMENSIONS.LETTER.heightPx);

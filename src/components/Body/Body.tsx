@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FC, useEffect, useRef, useState } from "react";
+import React, { ChangeEvent, FC, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useReactToPrint } from "react-to-print";
 import {
   AlertCircle, CheckCircle, CheckSquare, Download, Edit3, Eye, FilePlus,
@@ -20,9 +20,15 @@ import {
   isResumeDocument, isResumeDocumentEmpty, readPersistedResumeDocument,
 } from "../../utils/resumeDocument";
 import {
-  calculatePrintedPageCount, createResumePdfTitle, getPrintPageStyle,
+  createResumePdfTitle, getPrintPageStyle,
   PRINT_PAGE_DIMENSIONS,
 } from "../../utils/resumeExport";
+import {
+  calculatePaginationLayout,
+  PaginationBreakMap,
+  PaginationCandidate,
+  shouldKeepSectionTogether,
+} from "../../utils/resumePagination";
 
 type SaveStatus = "saving" | "saved" | "error";
 type BuilderMode = "content" | "design" | "review";
@@ -37,6 +43,7 @@ const modes: Array<{ id: BuilderMode; label: string; accessibleLabel: string; ic
 
 const Body: FC = () => {
   const resumeRef = useRef<HTMLDivElement>(null);
+  const measurementRef = useRef<HTMLDivElement>(null);
   const previewViewportRef = useRef<HTMLDivElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
   const fileMenuRef = useRef<HTMLDivElement>(null);
@@ -45,6 +52,8 @@ const Body: FC = () => {
   const [mode, setMode] = useState<BuilderMode>("content");
   const [mobilePane, setMobilePane] = useState<MobilePane>("edit");
   const [isFileMenuOpen, setIsFileMenuOpen] = useState(false);
+  const [paginationBreaks, setPaginationBreaks] = useState<PaginationBreakMap>({});
+  const [multiColumnFlowHeight, setMultiColumnFlowHeight] = useState<number>();
   const [previewMetrics, setPreviewMetrics] = useState<PreviewMetrics>({
     scale: 1, pageCount: 1, contentHeight: PRINT_PAGE_DIMENSIONS.A4.heightPx,
   });
@@ -56,6 +65,7 @@ const Body: FC = () => {
     setActiveSectionKey, setActiveDetailIndex,
   } = useResumeStore();
   const { template } = document;
+  const usesMultiColumnFlow = getTemplateOption(template).supportsColumns && document.layout.mode === "two";
   const pageDimensions = PRINT_PAGE_DIMENSIONS[document.page.size];
   const handlePrint = useReactToPrint({
     contentRef: resumeRef,
@@ -94,9 +104,9 @@ const Body: FC = () => {
     return () => window.clearTimeout(statusTimer);
   }, [document]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const viewport = previewViewportRef.current;
-    const sheet = resumeRef.current?.querySelector<HTMLElement>("[data-resume-sheet]");
+    const sheet = measurementRef.current?.querySelector<HTMLElement>("[data-resume-sheet]");
     if (!viewport || !sheet) return undefined;
 
     let frame = 0;
@@ -106,14 +116,97 @@ const Body: FC = () => {
         const availableWidth = Math.max(0, viewport.clientWidth - 36);
         if (!availableWidth) return;
         const scale = Math.min(1, availableWidth / pageDimensions.widthPx);
-        const contentHeight = Math.max(sheet.scrollHeight, sheet.offsetHeight, pageDimensions.heightPx);
-        const pageCount = calculatePrintedPageCount(contentHeight, pageDimensions.heightPx);
+        const sheetRect = sheet.getBoundingClientRect();
+        const sheetStyles = window.getComputedStyle(sheet);
+        const paddingTop = Number.parseFloat(sheetStyles.paddingTop) || document.page.margin;
+        const paddingBottom = Number.parseFloat(sheetStyles.paddingBottom) || document.page.margin;
+        const itemGap = Number.parseFloat(sheetStyles.getPropertyValue("--item-gap")) || document.theme.itemGap;
+
+        if (usesMultiColumnFlow) {
+          const flow = sheet.querySelector<HTMLElement>("[data-layout-mode='multi']");
+          if (!flow) return;
+          const pageCount = Math.max(1, Math.ceil((flow.scrollWidth - 1) / Math.max(1, flow.clientWidth)));
+          setPaginationBreaks({});
+          setMultiColumnFlowHeight((current) => (
+            current !== undefined && Math.abs(current - flow.clientHeight) < 1 ? current : flow.clientHeight
+          ));
+          setPreviewMetrics((current) => (
+            Math.abs(current.scale - scale) < 0.001 && current.pageCount === pageCount
+              ? current
+              : { scale, pageCount, contentHeight: pageCount * pageDimensions.heightPx }
+          ));
+          return;
+        }
+
+        const flows = Array.from(sheet.querySelectorAll<HTMLElement>("[data-resume-flow]")).map((flow) => {
+          const candidates: PaginationCandidate[] = [];
+          const sections = Array.from(flow.children).filter(
+            (child): child is HTMLElement => child instanceof HTMLElement && child.hasAttribute("data-section-key")
+          );
+
+          sections.forEach((section) => {
+            const sectionKey = section.dataset.sectionKey;
+            if (!sectionKey) return;
+            const sectionRect = section.getBoundingClientRect();
+            const sectionTop = sectionRect.top - sheetRect.top;
+            const sectionTitle = section.querySelector<HTMLElement>("h2")?.textContent?.trim() ?? "";
+            const entries = Array.from(section.querySelectorAll<HTMLElement>("article[data-entry-id]"));
+            const usableHeight = pageDimensions.heightPx - paddingTop - paddingBottom;
+            const pageIndex = Math.max(0, Math.floor(sectionTop / pageDimensions.heightPx));
+            const pageBottom = (pageIndex + 1) * pageDimensions.heightPx - paddingBottom;
+            const remainingHeight = Math.max(0, pageBottom - sectionTop);
+            if (shouldKeepSectionTogether(sectionRect.height, remainingHeight, usableHeight)) {
+              candidates.push({ id: `section:${sectionKey}`, top: sectionTop, height: sectionRect.height });
+              return;
+            }
+
+            if (entries.length === 0) return;
+
+            const firstEntryRect = entries[0].getBoundingClientRect();
+            candidates.push({
+              id: `section:${sectionKey}`,
+              top: sectionTop,
+              height: firstEntryRect.bottom - sectionRect.top,
+            });
+
+            entries.slice(1).forEach((entry) => {
+              const entryId = entry.dataset.entryId;
+              if (!entryId) return;
+              const entryRect = entry.getBoundingClientRect();
+              const title = section.querySelector<HTMLElement>("h2");
+              const titleStyles = title ? window.getComputedStyle(title) : null;
+              const continuationHeight = title
+                ? title.getBoundingClientRect().height + (Number.parseFloat(titleStyles?.marginBottom ?? "0") || 0) + itemGap * .34
+                : 0;
+              candidates.push({
+                id: `entry:${sectionKey}:${entryId}`,
+                top: entryRect.top - sheetRect.top,
+                height: entryRect.height,
+                continuationHeight,
+                continuationTitle: sectionTitle,
+              });
+            });
+          });
+
+          return candidates;
+        });
+
+        const pagination = calculatePaginationLayout(
+          flows,
+          pageDimensions.heightPx,
+          paddingTop,
+          paddingBottom
+        );
+        setMultiColumnFlowHeight(undefined);
+        setPaginationBreaks((current) => (
+          JSON.stringify(current) === JSON.stringify(pagination.breaks) ? current : pagination.breaks
+        ));
         setPreviewMetrics((current) => (
           Math.abs(current.scale - scale) < 0.001 &&
-          current.pageCount === pageCount &&
-          Math.abs(current.contentHeight - contentHeight) < 1
+          current.pageCount === pagination.pageCount &&
+          Math.abs(current.contentHeight - pagination.contentHeight) < 1
             ? current
-            : { scale, pageCount, contentHeight }
+            : { scale, pageCount: pagination.pageCount, contentHeight: pagination.contentHeight }
         ));
       });
     };
@@ -123,7 +216,7 @@ const Body: FC = () => {
     observer.observe(sheet);
     measure();
     return () => { observer.disconnect(); window.cancelAnimationFrame(frame); };
-  }, [document, pageDimensions.heightPx, pageDimensions.widthPx]);
+  }, [document, pageDimensions.heightPx, pageDimensions.widthPx, usesMultiColumnFlow]);
 
   useEffect(() => {
     const handleKeyboardHistory = (event: KeyboardEvent) => {
@@ -285,8 +378,35 @@ const Body: FC = () => {
             </span>
           </div>
           <div className={styles.previewViewport} ref={previewViewportRef}>
+            <div className={styles.measurementSource} style={{ width: pageDimensions.width }} aria-hidden="true">
+              <ResumeRenderer ref={measurementRef} document={document} />
+            </div>
             <div className={styles.printSource} style={{ width: pageDimensions.width }} aria-hidden="true">
-              <ResumeRenderer ref={resumeRef} document={document} />
+              <div ref={resumeRef} data-resume-print-root>
+                {Array.from({ length: previewMetrics.pageCount }, (_, index) => (
+                  <div
+                    key={index}
+                    className={styles.printPage}
+                    data-resume-print-page
+                    style={{ width: pageDimensions.width, height: pageDimensions.height }}
+                  >
+                    <div
+                      className={styles.printPageDocument}
+                      style={{
+                        width: pageDimensions.width,
+                        top: usesMultiColumnFlow ? "0" : `${-index * pageDimensions.heightPx}px`,
+                      }}
+                    >
+                      <ResumeRenderer
+                        document={document}
+                        paginationBreaks={paginationBreaks}
+                        multiColumnPageIndex={usesMultiColumnFlow ? index : 0}
+                        multiColumnFlowHeight={usesMultiColumnFlow ? multiColumnFlowHeight : undefined}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
             <div
               className={styles.previewStage}
@@ -308,11 +428,16 @@ const Body: FC = () => {
                     className={styles.previewPageDocument}
                     style={{
                       width: pageDimensions.width,
-                      top: `${-index * previewPageHeight}px`,
+                      top: usesMultiColumnFlow ? "0" : `${-index * previewPageHeight}px`,
                       transform: `scale(${previewMetrics.scale})`,
                     }}
                   >
-                    <ResumeRenderer document={document} />
+                    <ResumeRenderer
+                      document={document}
+                      paginationBreaks={paginationBreaks}
+                      multiColumnPageIndex={usesMultiColumnFlow ? index : 0}
+                      multiColumnFlowHeight={usesMultiColumnFlow ? multiColumnFlowHeight : undefined}
+                    />
                   </div>
                   <span className={styles.pageNumber}>Page {index + 1} of {previewMetrics.pageCount}</span>
                 </div>

@@ -95,6 +95,15 @@ test("flags minimum typography, dense spacing, and page overflow without calling
   assert.ok(report.findings.some((finding) => finding.title === "Review page overflow" && finding.severity === "recommended"));
 });
 
+test("flags unreadable body text colors as critical", () => {
+  const document = healthyDocument();
+  document.theme = { ...document.theme, textColor: "#ffffff" };
+  const report = analyzeResumeHealth(document);
+  assert.ok(report.findings.some((finding) =>
+    finding.title === "Increase body text contrast" && finding.severity === "critical"
+  ));
+});
+
 test("validates links with or without an explicit web protocol", () => {
   assert.equal(isValidResumeLink("https://example.com/profile"), true);
   assert.equal(isValidResumeLink("linkedin.com/in/example"), true);

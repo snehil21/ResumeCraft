@@ -40,7 +40,9 @@
 .previewPageFit { border-color: #b7d6c2; background: #e8f5ed; color: #256247; }
 .previewPageOverflow { border-color: #e0bd77; background: #fff0d1; color: #8a5710; }
 .previewViewport { max-height: calc(100vh - 190px); padding: 18px; overflow: auto; border: 1px solid #d8cec5; border-radius: 12px; background: #d9d2ca; box-shadow: 0 16px 38px rgba(55,39,27,.13); }
-.printSource { position: fixed; top: 0; left: -100000px; visibility: hidden; pointer-events: none; }
+.measurementSource,.printSource { position: fixed; top: 0; left: -100000px; visibility: hidden; pointer-events: none; }
+.printPage { position: relative; overflow: hidden; background: #fff; }
+.printPageDocument { position: absolute; left: 0; }
 .previewStage { position: relative; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
 .previewPage { position: relative; flex: 0 0 auto; overflow: hidden; background: #fff; border-radius: 2px; box-shadow: 0 5px 16px rgba(43,32,24,.2); }
 .previewPageDocument { position: absolute; left: 0; transform-origin: top left; }

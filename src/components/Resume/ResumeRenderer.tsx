@@ -5,9 +5,17 @@ import { SECTIONS, getTemplateOption } from "../../constants";
 import { BasicDetail, ResumeDocument, Section } from "../../types";
 import { formatResumeDate } from "../../utils/formatResumeDate";
 import { getEmailHref, getExternalHref, getPhoneHref } from "../../utils/resumeExport";
+import type { PaginationBreakMap } from "../../utils/resumePagination";
+import MultiColumnResume from "./MultiColumnResume";
 import styles from "./ResumeRenderer.module.css";
+import SingleColumnResume from "./SingleColumnResume";
 
-interface ResumeRendererProps { document: ResumeDocument; }
+interface ResumeRendererProps {
+  document: ResumeDocument;
+  paginationBreaks?: PaginationBreakMap;
+  multiColumnPageIndex?: number;
+  multiColumnFlowHeight?: number;
+}
 
 const hasSectionContent = (section: Section): boolean => {
   if (typeof section.detail === "string") return Boolean(section.detail.trim());
@@ -21,7 +29,12 @@ const hasSectionContent = (section: Section): boolean => {
 };
 
 const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
-  ({ document }, ref: Ref<HTMLDivElement>) => {
+  ({
+    document,
+    paginationBreaks = {},
+    multiColumnPageIndex = 0,
+    multiColumnFlowHeight,
+  }, ref: Ref<HTMLDivElement>) => {
     const { resumeInformation, layout, theme, page, template } = document;
     const basic = (resumeInformation[SECTIONS.basicInfo]?.detail ?? {}) as BasicDetail;
     const templateOption = getTemplateOption(template);
@@ -42,9 +55,22 @@ const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
       return nonEmpty.length ? <ul className={styles.points}>{nonEmpty.map((point, index) => <li key={`${point}-${index}`}>{point}</li>)}</ul> : null;
     };
 
-    const renderEntry = (item: any, sectionKey: string): ReactNode => {
+    const renderEntry = (item: any, sectionKey: string, sectionTitle: string): ReactNode => {
       const subtitle = item.companyName || item.college || item.subtitle || item.issuer || item.organization || item.publisher || item.provider;
-      return <article className={styles.item} key={item.id}>
+      const breakId = `entry:${sectionKey}:${item.id}`;
+      const paginationBreak = paginationBreaks[breakId];
+      return <article
+        className={styles.item}
+        key={item.id}
+        data-entry-id={item.id}
+        data-pagination-break-id={breakId}
+        style={paginationBreak ? { marginTop: `${paginationBreak.space}px` } : undefined}
+      >
+        {paginationBreak?.continuationTitle ? (
+          <h2 className={`${styles.sectionTitle} ${styles.continuationTitle}`}>
+            {paginationBreak.continuationTitle || sectionTitle} <span>continued</span>
+          </h2>
+        ) : null}
         <div className={styles.itemHeader}>
           <p className={styles.itemTitle}>{item.title}</p>
           {dateRange(item, sectionKey)}
@@ -70,13 +96,21 @@ const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
     const renderSection = (sectionKey: string): ReactNode => {
       const section = resumeInformation[sectionKey];
       if (!section || !section.visible || section.deleted || !section.sectionTitle) return null;
-      return <section className={styles.section} key={sectionKey} data-section-key={sectionKey}>
+      const breakId = `section:${sectionKey}`;
+      const paginationBreak = paginationBreaks[breakId];
+      return <section
+        className={styles.section}
+        key={sectionKey}
+        data-section-key={sectionKey}
+        data-pagination-break-id={breakId}
+        style={paginationBreak ? { marginTop: `${paginationBreak.space}px` } : undefined}
+      >
         <h2 className={styles.sectionTitle}>{section.sectionTitle}</h2>
         <div className={styles.sectionContent}>
           {typeof section.detail === "string" && section.detail.trim()
             ? <p className={styles.paragraph}>{section.detail}</p>
             : null}
-          {section.details?.map((item) => renderEntry(item, sectionKey))}
+          {section.details?.map((item) => renderEntry(item, sectionKey, section.sectionTitle))}
           {points(section.points)}
         </div>
       </section>;
@@ -97,6 +131,7 @@ const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
       "--page-height": page.size === "A4" ? "297mm" : "11in",
       "--left-column": layout.columnRatio,
       "--right-column": 100 - layout.columnRatio,
+      "--multi-flow-height": multiColumnFlowHeight ? `${multiColumnFlowHeight}px` : undefined,
     } as CSSProperties;
 
     const contactItems = [
@@ -117,7 +152,7 @@ const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
 
     return <div ref={ref} data-resume-root>
       <div
-        className={`${styles.sheet} ${templateClass}`}
+        className={`${styles.sheet} ${templateClass} ${useColumns ? styles.multiColumnSheet : ""} ${useColumns && multiColumnPageIndex > 0 ? styles.multiColumnContinuation : ""}`}
         style={sheetStyle}
         data-document-id={document.id}
         data-schema-version={document.schemaVersion}
@@ -126,18 +161,23 @@ const ResumeRenderer = forwardRef<HTMLDivElement, ResumeRendererProps>(
         data-resume-sheet
       >
         {!hasContent ? <div className={styles.placeholder}>Add your details to start building the resume preview.</div> : null}
-        <header className={styles.header}>
-          <div className={styles.identity}>
-            <h1>{basic.name}</h1>
-            {basic.title ? <p>{basic.title}</p> : null}
-          </div>
-          {contactItems.length ? <div className={styles.contacts}>{contactItems}</div> : null}
-        </header>
+        {!useColumns || multiColumnPageIndex === 0 ? (
+          <header className={styles.header}>
+            <div className={styles.identity}>
+              <h1>{basic.name}</h1>
+              {basic.title ? <p>{basic.title}</p> : null}
+            </div>
+            {contactItems.length ? <div className={styles.contacts}>{contactItems}</div> : null}
+          </header>
+        ) : null}
 
-        {useColumns ? <main className={styles.columns}>
-          <div className={styles.column}>{layout.columns[0].map(renderSection)}</div>
-          <div className={styles.column}>{layout.columns[1].map(renderSection)}</div>
-        </main> : <main className={styles.sections}>{layout.sectionOrder.map(renderSection)}</main>}
+        {useColumns
+          ? <MultiColumnResume
+            sectionOrder={layout.sectionOrder}
+            pageIndex={multiColumnPageIndex}
+            renderSection={renderSection}
+          />
+          : <SingleColumnResume sectionOrder={layout.sectionOrder} renderSection={renderSection} />}
       </div>
     </div>;
   }
